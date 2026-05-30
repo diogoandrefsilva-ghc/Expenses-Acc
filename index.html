@@ -55,9 +55,11 @@ body{overflow-x:hidden}
 .cat-val{font-size:13px;font-weight:700;font-family:var(--mono);margin-top:2px}
 
 /* Filters */
-.filters{padding:16px 20px 8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filters{padding:16px 20px 8px;display:flex;flex-direction:column;gap:8px}
+.filter-row{display:flex;align-items:center;gap:8px}
+.filter-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;min-width:38px}
+.filter-btns{display:flex;gap:5px;flex-wrap:wrap}
 .filter-btn{padding:5px 10px;border-radius:14px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
-.filter-sep{width:1px;height:16px;background:var(--border);margin:0 2px}
 
 /* Expense list */
 .list-wrap{padding:8px 20px 100px}
@@ -502,17 +504,20 @@ function renderFilters(){
   const types=[["all","Todas"],...CATEGORIES.map(c=>[c,c])];
   const statuses=[["all","Todas"],["pending","Pendentes"],["confirmed","Confirmadas"],["reimbursed","Reembolsadas"]];
   el.innerHTML=
+    `<div class="filter-row"><span class="filter-label">Tipo</span><div class="filter-btns">`+
     types.map(([k,l])=>{
       const active=filterType===k;
       const bg=active?(k==="all"?"rgba(255,255,255,0.12)":(CAT_COLORS[k]||"#fff")+"33"):"rgba(255,255,255,0.04)";
       const col=active?(k==="all"?"#fff":(CAT_COLORS[k]||"#fff")):"#666";
       return `<button class="filter-btn" style="background:${bg};color:${col}" onclick="setFilterType('${k}')">${l}</button>`;
     }).join("")+
-    `<div class="filter-sep"></div>`+
+    `</div></div>`+
+    `<div class="filter-row"><span class="filter-label">Estado</span><div class="filter-btns">`+
     statuses.map(([k,l])=>{
       const active=filterStatus===k;
       return `<button class="filter-btn" style="background:${active?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)"};color:${active?"#fff":"#666"}" onclick="setFilterStatus('${k}')">${l}</button>`;
-    }).join("");
+    }).join("")+
+    `</div></div>`;
 }
 
 function renderList(){
