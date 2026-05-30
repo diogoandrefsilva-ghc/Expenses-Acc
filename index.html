@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Accenture · Despesas Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#12141a;--card:#1a1d23;--card2:#22252b;--border:rgba(255,255,255,0.06);
+  --text:#f0f0f0;--text2:#999;--text3:#666;
+  --orange:#e67e22;--amber:#f39c12;--green:#27ae60;--blue:#3498db;--purple:#9b59b6;--red:#e74c3c;
+  --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-tap-highlight-color:transparent}
+body{overflow-x:hidden}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+/* Header */
+.header{background:linear-gradient(160deg,var(--card) 0%,var(--card2) 100%);padding:24px 20px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14}
+.brand-label{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--orange);text-transform:uppercase}
+.brand-title{font-size:20px;font-weight:700;margin-top:2px}
+.btn-settings{background:rgba(255,255,255,0.06);border:none;border-radius:10px;padding:8px 12px;color:var(--text2);font-size:18px;cursor:pointer}
+
+/* FY Tabs */
+.fy-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.fy-tabs::-webkit-scrollbar{display:none}
+.fy-tab{padding:6px 14px;border-radius:20px;border:none;white-space:nowrap;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s}
+.fy-tab.active{background:var(--orange);color:#fff}
+.fy-tab:not(.active){background:rgba(255,255,255,0.06);color:#888}
+
+/* Dashboard */
+.dashboard{padding:20px 20px 0}
+.dash-main{display:flex;align-items:center;gap:20px;background:linear-gradient(135deg,rgba(230,126,34,0.08),rgba(243,156,18,0.04));border-radius:16px;padding:20px;border:1px solid rgba(230,126,34,0.12)}
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-size:22px;font-weight:700;font-family:var(--mono)}
+.ring-label{font-size:9px;color:var(--text2);letter-spacing:1px;text-transform:uppercase}
+.dash-grid{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dash-item-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.dash-item-value{font-size:16px;font-weight:700;font-family:var(--mono)}
+.dash-item-value.sm{font-size:14px;font-weight:600}
+
+/* Category cards */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.cat-card{background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 8px;text-align:center}
+.cat-icon{font-size:16px}
+.cat-name{font-size:9px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+.cat-val{font-size:13px;font-weight:700;font-family:var(--mono);margin-top:2px}
+
+/* Filters */
+.filters{padding:16px 20px 8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:5px 10px;border-radius:14px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
+.filter-sep{width:1px;height:16px;background:var(--border);margin:0 2px}
+
+/* Expense list */
+.list-wrap{padding:8px 20px 100px}
+.list-count{font-size:12px;color:#888;margin-bottom:10px}
+.exp-list{display:flex;flex-direction:column;gap:6px}
+.exp-row{background:rgba(255,255,255,0.03);border-radius:12px;padding:12px 14px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .15s}
+.exp-row:active{background:rgba(255,255,255,0.06)}
+.exp-row.pending{border-color:rgba(243,156,18,0.2)}
+.exp-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.exp-info{flex:1;min-width:0}
+.exp-desc-row{display:flex;align-items:center;gap:6px}
+.exp-desc{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:8px;padding:1px 5px;border-radius:6px;font-weight:700;flex-shrink:0}
+.badge-pending{background:var(--amber);color:#000}
+.badge-reimb{background:rgba(39,174,96,0.2);color:var(--green)}
+.exp-meta{font-size:11px;color:#777;margin-top:2px}
+.exp-amount{font-size:15px;font-weight:700;font-family:var(--mono);flex-shrink:0}
+.btn-del{background:none;border:none;color:#555;font-size:16px;cursor:pointer;padding:4px;flex-shrink:0}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--orange),var(--amber));border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(230,126,34,0.4);display:flex;align-items:center;justify-content:center;z-index:50}
+
+/* Modal */
+.overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px)}
+.modal{position:relative;background:var(--card);border-radius:16px;padding:28px;width:min(92vw,440px);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid var(--border)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-size:18px;font-weight:600}
+.btn-close{background:none;border:none;color:#888;font-size:22px;cursor:pointer;padding:4px}
+
+/* Form */
+.form-group{margin-bottom:14px}
+.form-label{display:block;margin-bottom:4px;font-size:12px;color:var(--text2);font-weight:500}
+.form-input{width:100%;padding:10px 12px;background:var(--card2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
+.form-input:focus{border-color:rgba(230,126,34,0.4)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat-btns{display:flex;gap:6px}
+.cat-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--font);font-weight:600;transition:all .15s}
+.check-row{display:flex;gap:16px;margin:14px 0 4px}
+.check-label{display:flex;align-items:center;gap:6px;font-size:13px;color:#ccc;cursor:pointer}
+.btn-row{display:flex;gap:10px;margin-top:18px}
+.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font)}
+.btn-save{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),var(--amber));color:#fff;font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font)}
+.btn-danger{padding:12px;border-radius:10px;border:1px solid rgba(231,76,60,0.3);background:rgba(231,76,60,0.08);color:var(--red);font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font);width:100%}
+.btn-outline-orange{padding:12px;border-radius:10px;border:1px solid rgba(230,126,34,0.3);background:rgba(230,126,34,0.08);color:var(--orange);font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font);width:100%}
+.settings-field{margin-bottom:16px}
+.wbs-display{padding:10px 12px;background:var(--card2);border-radius:8px;color:var(--orange);font-size:14px;font-family:var(--mono)}
+.empty-state{text-align:center;padding:40px;color:#555;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="brand-label">Accenture</div>
+      <div class="brand-title">Despesas Manager</div>
+    </div>
+    <button class="btn-settings" onclick="openSettings()">⚙️</button>
+  </div>
+  <div class="fy-tabs" id="fyTabs"></div>
+</div>
+
+<div class="dashboard" id="dashboard"></div>
+<div class="filters" id="filters"></div>
+<div class="list-wrap" id="listWrap"></div>
+<button class="fab" onclick="openForm()">+</button>
+
+<!-- Form Modal -->
+<div class="overlay" id="formModal">
+  <div class="overlay-bg" onclick="closeForm()"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="formTitle">Nova Despesa</span>
+      <button class="btn-close" onclick="closeForm()">✕</button>
+    </div>
+    <div id="formBody"></div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="overlay" id="deleteModal">
+  <div class="overlay-bg" onclick="closeDelete()"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Apagar Despesa</span>
+      <button class="btn-close" onclick="closeDelete()">✕</button>
+    </div>
+    <p style="color:#ccc;font-size:14px;margin-bottom:20px">Tens a certeza que queres apagar esta despesa?</p>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeDelete()">Cancelar</button>
+      <button class="btn-save" style="background:#e74c3c" onclick="confirmDelete()">Apagar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="overlay" id="settingsModal">
+  <div class="overlay-bg" onclick="closeSettings()"></div>
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Definições</span>
+      <button class="btn-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div id="settingsBody"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───
+const CATEGORIES = ["Galp","Meal","Telemóveis","Outro"];
+const CAT_COLORS = {Galp:"#e67e22",Meal:"#27ae60","Telemóveis":"#3498db",Outro:"#9b59b6"};
+const CAT_ICONS = {Galp:"⛽",Meal:"🍽️","Telemóveis":"📱",Outro:"📦"};
+
+const DEFAULT_DATA = {
+  configs: {
+    FY26:{budget:3000,wbs:"GI241002"},FY25:{budget:3000,wbs:"GI241002"},FY24:{budget:3000,wbs:"GI241002"},
+    FY23:{budget:3000,wbs:"GI241002"},FY22:{budget:3000,wbs:"GI241002"},FY21:{budget:3000,wbs:"GI241002"},FY20:{budget:3000,wbs:"GI241002"},
+  },
+  expenses: [
+    // ── FY26 ──
+    {id:"s1",fy:"FY26",type:"Telemóveis",date:"",desc:"Renovação Telemóvel",amount:47,quinzena:"",reimbursed:false,pending:false},
+    {id:"s2",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Nov/25",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s3",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Dez/25",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s4",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Jan/26",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s5",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Fev/26",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s6",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Mar/26",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s7",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Abr/26",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s8",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Mai/26",amount:39.33,quinzena:"",reimbursed:false,pending:false},
+    {id:"s9",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Jun/26",amount:39.33,quinzena:"",reimbursed:false,pending:true},
+    {id:"s10",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Jul/26",amount:39.33,quinzena:"",reimbursed:false,pending:true},
+    {id:"s11",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Ago/26",amount:39.33,quinzena:"",reimbursed:false,pending:true},
+    {id:"s12",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Set/26",amount:39.33,quinzena:"",reimbursed:false,pending:true},
+    {id:"s13",fy:"FY26",type:"Telemóveis",date:"",desc:"Comunicações Out/26",amount:39.33,quinzena:"",reimbursed:false,pending:true},
+    {id:"s14",fy:"FY26",type:"Galp",date:"2025-11-02",desc:"Alcochete",amount:68.82,quinzena:"Extrato 2025Nov",reimbursed:true,pending:false},
+    {id:"s15",fy:"FY26",type:"Galp",date:"2025-11-13",desc:"Braga",amount:76.58,quinzena:"Extrato 2025Nov",reimbursed:true,pending:false},
+    {id:"s16",fy:"FY26",type:"Galp",date:"2025-11-23",desc:"Alcochete",amount:48.94,quinzena:"Extrato 2025Nov",reimbursed:true,pending:false},
+    {id:"s17",fy:"FY26",type:"Galp",date:"2025-12-06",desc:"Trofa",amount:75.51,quinzena:"Extrato 2025Dez",reimbursed:true,pending:false},
+    {id:"s18",fy:"FY26",type:"Galp",date:"2025-12-14",desc:"Alcochete",amount:61.86,quinzena:"Extrato 2025Dez",reimbursed:true,pending:false},
+    {id:"s19",fy:"FY26",type:"Galp",date:"2026-01-11",desc:"Alcochete",amount:68.83,quinzena:"Extrato 2026Jan",reimbursed:true,pending:false},
+    {id:"s20",fy:"FY26",type:"Galp",date:"2026-01-25",desc:"Braga",amount:70.95,quinzena:"Extrato 2026Jan",reimbursed:true,pending:false},
+    {id:"s21",fy:"FY26",type:"Galp",date:"2026-02-08",desc:"Alcochete",amount:65.45,quinzena:"Extrato 2026Fev",reimbursed:true,pending:false},
+    {id:"s22",fy:"FY26",type:"Galp",date:"2026-02-16",desc:"Braga",amount:73.59,quinzena:"Extrato 2026Fev",reimbursed:true,pending:false},
+    {id:"s23",fy:"FY26",type:"Galp",date:"2026-02-22",desc:"Alcochete",amount:56.74,quinzena:"Extrato 2026Fev",reimbursed:true,pending:false},
+    {id:"s24",fy:"FY26",type:"Galp",date:"2026-03-15",desc:"Alcochete",amount:66.9,quinzena:"Extrato 2026Mar",reimbursed:true,pending:false},
+    {id:"s25",fy:"FY26",type:"Galp",date:"2026-04-03",desc:"Braga",amount:72.15,quinzena:"Extrato 2026Abr",reimbursed:true,pending:false},
+    {id:"s26",fy:"FY26",type:"Galp",date:"2026-04-12",desc:"Alcochete",amount:80.16,quinzena:"Extrato 2026Abr",reimbursed:true,pending:false},
+    {id:"s27",fy:"FY26",type:"Galp",date:"2026-04-27",desc:"Braga",amount:46.22,quinzena:"Extrato 2026Abr",reimbursed:true,pending:false},
+    {id:"s28",fy:"FY26",type:"Galp",date:"2026-05-03",desc:"Braga",amount:71,quinzena:"Extrato 2026Mai",reimbursed:false,pending:false},
+    {id:"s29",fy:"FY26",type:"Galp",date:"2026-05-14",desc:"Alcochete",amount:65,quinzena:"Extrato 2026Mai",reimbursed:false,pending:false},
+    {id:"s30",fy:"FY26",type:"Galp",date:"2026-05-23",desc:"Braga",amount:66,quinzena:"Extrato 2026Mai",reimbursed:false,pending:false},
+    // ── FY25 ──
+    {id:"s31",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Nov/24",amount:3.55,quinzena:"",reimbursed:false,pending:false},
+    {id:"s32",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Dez/24",amount:3.55,quinzena:"",reimbursed:false,pending:false},
+    {id:"s33",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Jan/25",amount:40.32,quinzena:"",reimbursed:false,pending:false},
+    {id:"s34",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Fev/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s35",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Mar/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s36",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Abr/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s37",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Mai/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s38",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Jun/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s39",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Jul/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s40",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Ago/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s41",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Set/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s42",fy:"FY25",type:"Telemóveis",date:"",desc:"Comunicações Out/25",amount:40.84,quinzena:"",reimbursed:false,pending:false},
+    {id:"s43",fy:"FY25",type:"Telemóveis",date:"",desc:"Extra comunicações Set/25",amount:36.41,quinzena:"",reimbursed:false,pending:false},
+    {id:"s44",fy:"FY25",type:"Galp",date:"2024-11-09",desc:"Alcochete",amount:76.59,quinzena:"Extrato 2024Nov",reimbursed:true,pending:false},
+    {id:"s45",fy:"FY25",type:"Galp",date:"2024-11-30",desc:"Alcochete",amount:64.08,quinzena:"Extrato 2024Nov",reimbursed:true,pending:false},
+    {id:"s46",fy:"FY25",type:"Galp",date:"2024-12-08",desc:"Braga",amount:53.5,quinzena:"Extrato 2024Dez",reimbursed:true,pending:false},
+    {id:"s47",fy:"FY25",type:"Galp",date:"2024-12-21",desc:"Alcochete",amount:72.81,quinzena:"Extrato 2024Dez",reimbursed:true,pending:false},
+    {id:"s48",fy:"FY25",type:"Galp",date:"2025-01-25",desc:"Alcochete",amount:78.54,quinzena:"Extrato 2025Jan",reimbursed:true,pending:false},
+    {id:"s49",fy:"FY25",type:"Galp",date:"2025-02-17",desc:"Braga",amount:72.59,quinzena:"Extrato 2025Fev",reimbursed:true,pending:false},
+    {id:"s50",fy:"FY25",type:"Galp",date:"2025-03-01",desc:"Alcochete",amount:69.9,quinzena:"Extrato 2025Mar",reimbursed:true,pending:false},
+    {id:"s51",fy:"FY25",type:"Galp",date:"2025-03-29",desc:"Alcochete",amount:71.35,quinzena:"Extrato 2025Mar",reimbursed:true,pending:false},
+    {id:"s52",fy:"FY25",type:"Galp",date:"2025-04-04",desc:"Braga",amount:46.14,quinzena:"Extrato 2025Abr",reimbursed:true,pending:false},
+    {id:"s53",fy:"FY25",type:"Meal",date:"2025-03-24",desc:"Restaurante Marco",amount:98.05,quinzena:"TR 2025Abr Q1",reimbursed:true,pending:false},
+    {id:"s54",fy:"FY25",type:"Meal",date:"2025-03-26",desc:"Arigato",amount:82.95,quinzena:"TR 2025Abr Q1",reimbursed:true,pending:false},
+    {id:"s55",fy:"FY25",type:"Meal",date:"2025-04-09",desc:"Fogo de Chão",amount:45.15,quinzena:"TR 2025Abr Q1",reimbursed:true,pending:false},
+    {id:"s56",fy:"FY25",type:"Galp",date:"2025-04-13",desc:"Alcochete",amount:66.79,quinzena:"Extrato 2025Abr",reimbursed:true,pending:false},
+    {id:"s57",fy:"FY25",type:"Galp",date:"2025-04-27",desc:"Braga",amount:67.93,quinzena:"Extrato 2025Abr",reimbursed:true,pending:false},
+    {id:"s58",fy:"FY25",type:"Galp",date:"2025-05-17",desc:"Alcochete",amount:73.36,quinzena:"Extrato 2025Mai",reimbursed:true,pending:false},
+    {id:"s59",fy:"FY25",type:"Meal",date:"2025-05-02",desc:"Ohhh TC",amount:69.35,quinzena:"TR 2025Mai Q2",reimbursed:true,pending:false},
+    {id:"s60",fy:"FY25",type:"Meal",date:"2025-05-15",desc:"Portugália",amount:83.6,quinzena:"TR 2025Mai Q2",reimbursed:true,pending:false},
+    {id:"s61",fy:"FY25",type:"Galp",date:"2025-06-01",desc:"Alcochete",amount:64.75,quinzena:"Extrato 2025Jun",reimbursed:true,pending:false},
+    {id:"s62",fy:"FY25",type:"Meal",date:"2025-06-02",desc:"Teodósio",amount:64.8,quinzena:"TR 2025Jun Q1",reimbursed:true,pending:false},
+    {id:"s63",fy:"FY25",type:"Meal",date:"2025-06-03",desc:"Marisqueira Hera",amount:94.48,quinzena:"TR 2025Jun Q1",reimbursed:true,pending:false},
+    {id:"s64",fy:"FY25",type:"Meal",date:"2025-06-05",desc:"Massa Fina",amount:61.3,quinzena:"TR 2025Jun Q1",reimbursed:true,pending:false},
+    {id:"s65",fy:"FY25",type:"Meal",date:"2025-06-06",desc:"Museu dos Salgados",amount:119,quinzena:"TR 2025Jun Q1",reimbursed:true,pending:false},
+    {id:"s66",fy:"FY25",type:"Galp",date:"2025-06-10",desc:"Alcochete",amount:72.03,quinzena:"Extrato 2025Jun",reimbursed:true,pending:false},
+    {id:"s67",fy:"FY25",type:"Galp",date:"2025-06-25",desc:"Braga",amount:56.15,quinzena:"Extrato 2025Jun",reimbursed:true,pending:false},
+    {id:"s68",fy:"FY25",type:"Meal",date:"2025-07-10",desc:"Vira Prato",amount:115.75,quinzena:"TR 2025Jul Q1",reimbursed:true,pending:false},
+    {id:"s69",fy:"FY25",type:"Galp",date:"2025-07-14",desc:"Alcochete",amount:71.29,quinzena:"Extrato 2025Jul",reimbursed:true,pending:false},
+    {id:"s70",fy:"FY25",type:"Galp",date:"2025-08-02",desc:"Alcochete",amount:72.63,quinzena:"Extrato 2025Ago",reimbursed:true,pending:false},
+    {id:"s71",fy:"FY25",type:"Galp",date:"2025-08-24",desc:"Alcochete",amount:48.51,quinzena:"Extrato 2025Ago",reimbursed:true,pending:false},
+    // ── FY24 ──
+    {id:"s80",fy:"FY24",type:"Galp",date:"2023-11-19",desc:"Alcochete",amount:57.86,quinzena:"Extrato 2023Dez",reimbursed:true,pending:false},
+    {id:"s81",fy:"FY24",type:"Galp",date:"2023-12-02",desc:"Braga",amount:52.44,quinzena:"Extrato 2024Jan",reimbursed:true,pending:false},
+    {id:"s82",fy:"FY24",type:"Galp",date:"2023-12-17",desc:"Alcochete",amount:65.85,quinzena:"Extrato 2024Jan",reimbursed:true,pending:false},
+    {id:"s83",fy:"FY24",type:"Galp",date:"2024-01-31",desc:"Alcochete",amount:55.19,quinzena:"Extrato 2024Fev",reimbursed:true,pending:false},
+    {id:"s84",fy:"FY24",type:"Meal",date:"2024-02-01",desc:"Daqui Pra Fora",amount:79.5,quinzena:"TR 2024Fev Q2",reimbursed:true,pending:false},
+    {id:"s85",fy:"FY24",type:"Meal",date:"2024-02-21",desc:"Home Sweet Sushi",amount:56.13,quinzena:"TR 2024Fev Q2",reimbursed:true,pending:false},
+    {id:"s86",fy:"FY24",type:"Meal",date:"2024-03-01",desc:"Paullu's Restaurante",amount:131.26,quinzena:"TR 2024Mar Q1",reimbursed:true,pending:false},
+    {id:"s87",fy:"FY24",type:"Meal",date:"2024-03-01",desc:"Paullu's Restaurante",amount:131.44,quinzena:"TR 2024Mar Q1",reimbursed:true,pending:false},
+    {id:"s88",fy:"FY24",type:"Galp",date:"2024-02-29",desc:"Braga",amount:60.16,quinzena:"Extrato 2024Mar",reimbursed:true,pending:false},
+    {id:"s89",fy:"FY24",type:"Meal",date:"2024-03-16",desc:"Home Sweet Sushi",amount:56.13,quinzena:"TR 2024Mar Q2",reimbursed:true,pending:false},
+    {id:"s90",fy:"FY24",type:"Meal",date:"2024-03-18",desc:"Marradas",amount:133,quinzena:"TR 2024Mar Q2",reimbursed:true,pending:false},
+    {id:"s91",fy:"FY24",type:"Galp",date:"2024-03-10",desc:"Alcochete",amount:67.53,quinzena:"Extrato 2024Abr",reimbursed:true,pending:false},
+    {id:"s92",fy:"FY24",type:"Galp",date:"2024-03-29",desc:"Braga",amount:74,quinzena:"Extrato 2024Abr",reimbursed:true,pending:false},
+    {id:"s93",fy:"FY24",type:"Galp",date:"2024-05-02",desc:"Alcochete",amount:73.91,quinzena:"Extrato 2024Jun",reimbursed:true,pending:false},
+    {id:"s94",fy:"FY24",type:"Meal",date:"2024-05-03",desc:"Sushi & Poke",amount:61.1,quinzena:"TR 2024Mai Q2",reimbursed:true,pending:false},
+    {id:"s95",fy:"FY24",type:"Meal",date:"2024-05-15",desc:"Restaurante Morhua (Pedro)",amount:57.2,quinzena:"TR 2024Mai Q2",reimbursed:true,pending:false},
+    {id:"s96",fy:"FY24",type:"Galp",date:"2024-06-01",desc:"Alcochete",amount:50.79,quinzena:"Extrato 2024Jul",reimbursed:true,pending:false},
+    {id:"s97",fy:"FY24",type:"Meal",date:"2024-06-01",desc:"Solar do Peixe",amount:242.95,quinzena:"TR 2024Jun Q1",reimbursed:true,pending:false},
+    {id:"s98",fy:"FY24",type:"Meal",date:"2024-06-03",desc:"Prima Pasta",amount:68.9,quinzena:"TR 2024Jun Q1",reimbursed:true,pending:false},
+    {id:"s99",fy:"FY24",type:"Meal",date:"2024-05-05",desc:"Hera",amount:168.37,quinzena:"TR 2024Jun Q1",reimbursed:true,pending:false},
+    {id:"s100",fy:"FY24",type:"Meal",date:"2024-06-06",desc:"Frango da Guia",amount:91.8,quinzena:"TR 2024Jun Q1",reimbursed:true,pending:false},
+    {id:"s101",fy:"FY24",type:"Meal",date:"2024-06-07",desc:"Quinta da Saudade",amount:200.5,quinzena:"TR 2024Jun Q1",reimbursed:true,pending:false},
+    {id:"s102",fy:"FY24",type:"Galp",date:"2024-06-13",desc:"Alcochete",amount:67.72,quinzena:"Extrato 2024Jul",reimbursed:true,pending:false},
+    {id:"s103",fy:"FY24",type:"Galp",date:"2024-06-30",desc:"Braga",amount:76.07,quinzena:"Extrato 2024Jul",reimbursed:true,pending:false},
+    {id:"s104",fy:"FY24",type:"Galp",date:"2024-07-14",desc:"Alcochete",amount:55.44,quinzena:"Extrato 2024Ago",reimbursed:true,pending:false},
+    {id:"s105",fy:"FY24",type:"Galp",date:"2024-07-26",desc:"Alcochete",amount:67.57,quinzena:"Extrato 2024Ago",reimbursed:true,pending:false},
+    {id:"s106",fy:"FY24",type:"Meal",date:"2024-08-03",desc:"Subenshi",amount:214.95,quinzena:"TR 2024Ago Q1",reimbursed:true,pending:false},
+    {id:"s107",fy:"FY24",type:"Galp",date:"2024-08-19",desc:"Braga",amount:71.38,quinzena:"Extrato 2024Set",reimbursed:true,pending:false},
+    {id:"s108",fy:"FY24",type:"Galp",date:"2024-08-31",desc:"Braga",amount:50.26,quinzena:"Extrato 2024Set",reimbursed:true,pending:false},
+    // ── FY23 ──
+    {id:"s120",fy:"FY23",type:"Galp",date:"2022-11-09",desc:"Alcochete",amount:68.33,quinzena:"Extrato 2022Dez",reimbursed:true,pending:false},
+    {id:"s121",fy:"FY23",type:"Galp",date:"2022-11-26",desc:"Alcochete",amount:62.55,quinzena:"Extrato 2022Dez",reimbursed:true,pending:false},
+    {id:"s122",fy:"FY23",type:"Galp",date:"2022-12-03",desc:"Melgaço",amount:63.31,quinzena:"Extrato 2023Jan",reimbursed:true,pending:false},
+    {id:"s123",fy:"FY23",type:"Galp",date:"2022-12-10",desc:"Alcochete",amount:60.41,quinzena:"Extrato 2023Jan",reimbursed:true,pending:false},
+    {id:"s124",fy:"FY23",type:"Galp",date:"2022-12-15",desc:"Alcochete",amount:52.67,quinzena:"Extrato 2023Jan",reimbursed:true,pending:false},
+    {id:"s125",fy:"FY23",type:"Galp",date:"2022-12-27",desc:"Alcochete",amount:62.3,quinzena:"Extrato 2023Jan",reimbursed:true,pending:false},
+    {id:"s126",fy:"FY23",type:"Galp",date:"2023-01-19",desc:"Telheiras",amount:64.33,quinzena:"Extrato 2023Fev",reimbursed:true,pending:false},
+    {id:"s127",fy:"FY23",type:"Galp",date:"2023-01-30",desc:"Braga",amount:64.17,quinzena:"Extrato 2023Fev",reimbursed:true,pending:false},
+    {id:"s128",fy:"FY23",type:"Galp",date:"2023-02-12",desc:"Alcochete",amount:62.41,quinzena:"Extrato 2023Mar",reimbursed:true,pending:false},
+    {id:"s129",fy:"FY23",type:"Galp",date:"2023-02-20",desc:"Braga",amount:58.54,quinzena:"Extrato 2023Mar",reimbursed:true,pending:false},
+    {id:"s130",fy:"FY23",type:"Galp",date:"2023-02-28",desc:"Alcochete",amount:49.38,quinzena:"Extrato 2023Mar",reimbursed:true,pending:false},
+    {id:"s131",fy:"FY23",type:"Meal",date:"2023-02-11",desc:"Forno D'Oro",amount:105.9,quinzena:"2023 Fev Q2",reimbursed:true,pending:false},
+    {id:"s132",fy:"FY23",type:"Meal",date:"2023-02-14",desc:"Gula's Kitchen",amount:186.15,quinzena:"2023 Fev Q2",reimbursed:true,pending:false},
+    {id:"s133",fy:"FY23",type:"Meal",date:"2023-02-25",desc:"Agostinho Apúlia",amount:82.5,quinzena:"2023 Fev Q2",reimbursed:true,pending:false},
+    {id:"s134",fy:"FY23",type:"Galp",date:"2023-03-18",desc:"Alcochete",amount:54.65,quinzena:"Extrato 2023Abr",reimbursed:true,pending:false},
+    {id:"s135",fy:"FY23",type:"Galp",date:"2023-03-25",desc:"Braga",amount:59.39,quinzena:"Extrato 2023Abr",reimbursed:true,pending:false},
+    {id:"s136",fy:"FY23",type:"Galp",date:"2023-04-01",desc:"Alcochete",amount:49.58,quinzena:"Extrato 2023Mai",reimbursed:true,pending:false},
+    {id:"s137",fy:"FY23",type:"Galp",date:"2023-04-06",desc:"Alcochete",amount:34.26,quinzena:"Extrato 2023Mai",reimbursed:true,pending:false},
+    {id:"s138",fy:"FY23",type:"Galp",date:"2023-04-11",desc:"Braga",amount:39.61,quinzena:"Extrato 2023Mai",reimbursed:true,pending:false},
+    {id:"s139",fy:"FY23",type:"Galp",date:"2023-04-19",desc:"Alcochete",amount:56.89,quinzena:"Extrato 2023Mai",reimbursed:true,pending:false},
+    {id:"s140",fy:"FY23",type:"Galp",date:"2023-04-29",desc:"Alcochete",amount:41.42,quinzena:"Extrato 2023Mai",reimbursed:true,pending:false},
+    {id:"s141",fy:"FY23",type:"Galp",date:"2023-05-05",desc:"Braga",amount:41.38,quinzena:"Extrato 2023Jun",reimbursed:true,pending:false},
+    {id:"s142",fy:"FY23",type:"Galp",date:"2023-05-12",desc:"Alcochete",amount:54.64,quinzena:"Extrato 2023Jun",reimbursed:true,pending:false},
+    {id:"s143",fy:"FY23",type:"Galp",date:"2023-05-20",desc:"Alcochete",amount:45.35,quinzena:"Extrato 2023Jun",reimbursed:true,pending:false},
+    {id:"s144",fy:"FY23",type:"Galp",date:"2023-05-28",desc:"Alcochete",amount:50.49,quinzena:"Extrato 2023Jun",reimbursed:true,pending:false},
+    {id:"s145",fy:"FY23",type:"Meal",date:"2023-06-01",desc:"São Domingos",amount:75.8,quinzena:"2023 Jun Q1",reimbursed:true,pending:false},
+    {id:"s146",fy:"FY23",type:"Meal",date:"2023-06-02",desc:"Hera",amount:68.72,quinzena:"2023 Jun Q1",reimbursed:true,pending:false},
+    {id:"s147",fy:"FY23",type:"Meal",date:"2023-06-05",desc:"Casavostra",amount:56.3,quinzena:"2023 Jun Q1",reimbursed:true,pending:false},
+    {id:"s148",fy:"FY23",type:"Meal",date:"2023-06-06",desc:"Museu dos Salgados",amount:102.3,quinzena:"2023 Jun Q1",reimbursed:true,pending:false},
+    {id:"s149",fy:"FY23",type:"Meal",date:"2023-06-07",desc:"Veneza",amount:139.3,quinzena:"2023 Jun Q1",reimbursed:true,pending:false},
+    {id:"s150",fy:"FY23",type:"Galp",date:"2023-06-08",desc:"Pêra",amount:48.25,quinzena:"Extrato 2023Jul",reimbursed:true,pending:false},
+    {id:"s151",fy:"FY23",type:"Galp",date:"2023-06-16",desc:"Alcochete",amount:57.97,quinzena:"Extrato 2023Jul",reimbursed:true,pending:false},
+    {id:"s152",fy:"FY23",type:"Galp",date:"2023-06-24",desc:"Braga",amount:43.05,quinzena:"Extrato 2023Jul",reimbursed:true,pending:false},
+    {id:"s153",fy:"FY23",type:"Galp",date:"2023-06-26",desc:"Alcochete",amount:38.04,quinzena:"Extrato 2023Jul",reimbursed:true,pending:false},
+    {id:"s154",fy:"FY23",type:"Galp",date:"2023-07-05",desc:"Alcochete",amount:60.34,quinzena:"Extrato 2023Ago",reimbursed:true,pending:false},
+    {id:"s155",fy:"FY23",type:"Galp",date:"2023-08-27",desc:"Montijo",amount:78.59,quinzena:"Extrato 2023Set",reimbursed:true,pending:false},
+    {id:"s156",fy:"FY23",type:"Galp",date:"2023-09-30",desc:"Braga",amount:52.87,quinzena:"Extrato 2023Out",reimbursed:true,pending:false},
+    {id:"s157",fy:"FY23",type:"Galp",date:"2023-10-15",desc:"Alcochete",amount:49.62,quinzena:"Extrato 2023Nov",reimbursed:true,pending:false},
+    {id:"s158",fy:"FY23",type:"Meal",date:"",desc:"Home Sweet Sushi",amount:58.63,quinzena:"2023 Nov Q2",reimbursed:true,pending:false},
+    {id:"s159",fy:"FY23",type:"Meal",date:"",desc:"Taberna Belga",amount:75.35,quinzena:"2023 Nov Q2",reimbursed:true,pending:false},
+    {id:"s160",fy:"FY23",type:"Meal",date:"",desc:"Figueirinha Beach Lounge",amount:176.25,quinzena:"2023 Nov Q2",reimbursed:true,pending:false},
+    // ── FY22 (simplified) ──
+    {id:"s200",fy:"FY22",type:"Galp",date:"2021-11-11",desc:"Alcochete",amount:59.86,quinzena:"Extrato 2021Nov",reimbursed:true,pending:false},
+    {id:"s201",fy:"FY22",type:"Galp",date:"2021-11-30",desc:"Alcochete",amount:49.95,quinzena:"Extrato 2021Nov",reimbursed:true,pending:false},
+    {id:"s202",fy:"FY22",type:"Galp",date:"2021-12-07",desc:"Braga",amount:45.08,quinzena:"Extrato 2021Dez",reimbursed:true,pending:false},
+    {id:"s203",fy:"FY22",type:"Galp",date:"2021-12-15",desc:"Alcochete",amount:50.66,quinzena:"Extrato 2021Dez",reimbursed:true,pending:false},
+    {id:"s204",fy:"FY22",type:"Galp",date:"2021-12-29",desc:"Alcochete",amount:52.29,quinzena:"Extrato 2021Dez",reimbursed:true,pending:false},
+    {id:"s205",fy:"FY22",type:"Galp",date:"2022-01-15",desc:"Alcochete",amount:47.44,quinzena:"Extrato 2022Jan",reimbursed:true,pending:false},
+    {id:"s206",fy:"FY22",type:"Galp",date:"2022-02-05",desc:"Alcochete",amount:58.74,quinzena:"Extrato 2022Fev",reimbursed:true,pending:false},
+    {id:"s207",fy:"FY22",type:"Galp",date:"2022-02-18",desc:"Alcochete",amount:48.04,quinzena:"Extrato 2022Fev",reimbursed:true,pending:false},
+    {id:"s208",fy:"FY22",type:"Galp",date:"2022-02-26",desc:"Braga",amount:46.5,quinzena:"Extrato 2022Fev",reimbursed:true,pending:false},
+    {id:"s209",fy:"FY22",type:"Galp",date:"2022-03-01",desc:"Braga",amount:24.7,quinzena:"Extrato 2022Mar",reimbursed:true,pending:false},
+    {id:"s210",fy:"FY22",type:"Galp",date:"2022-03-04",desc:"Alcochete",amount:48.06,quinzena:"Extrato 2022Mar",reimbursed:true,pending:false},
+    {id:"s211",fy:"FY22",type:"Galp",date:"2022-04-03",desc:"Alcochete",amount:19.67,quinzena:"Extrato 2022Abr",reimbursed:true,pending:false},
+    {id:"s212",fy:"FY22",type:"Galp",date:"2022-04-08",desc:"Alcochete",amount:51.82,quinzena:"Extrato 2022Abr",reimbursed:true,pending:false},
+    {id:"s213",fy:"FY22",type:"Meal",date:"2022-04-08",desc:"Muelle",amount:127.99,quinzena:"TR 2022Abr Q2",reimbursed:true,pending:false},
+    {id:"s214",fy:"FY22",type:"Galp",date:"2022-04-15",desc:"Alcochete",amount:34.79,quinzena:"Extrato 2022Abr",reimbursed:true,pending:false},
+    {id:"s215",fy:"FY22",type:"Galp",date:"2022-04-20",desc:"Braga",amount:45.42,quinzena:"Extrato 2022Abr",reimbursed:true,pending:false},
+    {id:"s216",fy:"FY22",type:"Meal",date:"2022-04-23",desc:"Home Sweet Sushi",amount:49.63,quinzena:"TR 2022Abr Q2",reimbursed:true,pending:false},
+    {id:"s217",fy:"FY22",type:"Galp",date:"2022-05-06",desc:"Alcochete",amount:75.03,quinzena:"Extrato 2022Mai",reimbursed:true,pending:false},
+    {id:"s218",fy:"FY22",type:"Meal",date:"2022-05-21",desc:"Home Sweet Sushi",amount:48.13,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s219",fy:"FY22",type:"Galp",date:"2022-05-28",desc:"Alcochete",amount:51.11,quinzena:"Extrato 2022Mai",reimbursed:true,pending:false},
+    {id:"s220",fy:"FY22",type:"Meal",date:"2022-06-01",desc:"Restaurante Ti Lurdes",amount:119.5,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s221",fy:"FY22",type:"Galp",date:"2022-06-05",desc:"Alcochete",amount:50.71,quinzena:"Extrato 2022Jun",reimbursed:true,pending:false},
+    {id:"s222",fy:"FY22",type:"Meal",date:"2022-06-14",desc:"Manjar do Norte",amount:50,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s223",fy:"FY22",type:"Galp",date:"2022-06-19",desc:"Braga",amount:70.14,quinzena:"Extrato 2022Jun",reimbursed:true,pending:false},
+    {id:"s224",fy:"FY22",type:"Galp",date:"2022-06-24",desc:"Alcochete",amount:58.3,quinzena:"Extrato 2022Jun",reimbursed:true,pending:false},
+    {id:"s225",fy:"FY22",type:"Meal",date:"2022-06-24",desc:"Castro Restaurante",amount:49,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s226",fy:"FY22",type:"Meal",date:"2022-06-24",desc:"Restaurante São Domingos",amount:74.8,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s227",fy:"FY22",type:"Meal",date:"2022-06-25",desc:"Hera",amount:81.14,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s228",fy:"FY22",type:"Meal",date:"2022-06-27",desc:"Quinta da Saudade",amount:95,quinzena:"TR 2022Jun Q2",reimbursed:true,pending:false},
+    {id:"s229",fy:"FY22",type:"Meal",date:"2022-06-28",desc:"Pizzeria Casavostra",amount:52.3,quinzena:"TR 2022Jul Q2",reimbursed:true,pending:false},
+    {id:"s230",fy:"FY22",type:"Meal",date:"2022-06-29",desc:"Marisqueira Rui",amount:105.1,quinzena:"TR 2022Jul Q2",reimbursed:true,pending:false},
+    {id:"s231",fy:"FY22",type:"Galp",date:"2022-07-01",desc:"Alcochete",amount:80.36,quinzena:"Extrato 2022Jul",reimbursed:true,pending:false},
+    {id:"s232",fy:"FY22",type:"Meal",date:"2022-07-09",desc:"Home Sweet Sushi",amount:49.63,quinzena:"TR 2022Jul Q2",reimbursed:true,pending:false},
+    {id:"s233",fy:"FY22",type:"Meal",date:"2022-07-13",desc:"Ground Burger",amount:105.9,quinzena:"TR 2022Jul Q2",reimbursed:true,pending:false},
+    {id:"s234",fy:"FY22",type:"Galp",date:"2022-07-15",desc:"Alcochete",amount:48.44,quinzena:"Extrato 2022Jul",reimbursed:true,pending:false},
+    {id:"s235",fy:"FY22",type:"Galp",date:"2022-07-21",desc:"Alcochete",amount:69.84,quinzena:"Extrato 2022Jul",reimbursed:true,pending:false},
+    {id:"s236",fy:"FY22",type:"Galp",date:"2022-08-05",desc:"Braga",amount:56.96,quinzena:"Extrato 2022Ago",reimbursed:true,pending:false},
+    {id:"s237",fy:"FY22",type:"Galp",date:"2022-08-13",desc:"Alcochete",amount:61.47,quinzena:"Extrato 2022Ago",reimbursed:true,pending:false},
+    {id:"s238",fy:"FY22",type:"Galp",date:"2022-08-22",desc:"Alcochete (Carro João)",amount:76.36,quinzena:"Extrato 2022Ago",reimbursed:true,pending:false},
+    {id:"s239",fy:"FY22",type:"Meal",date:"2022-08-23",desc:"Restaurante Pedro",amount:100.45,quinzena:"TR 2022Set Q1",reimbursed:true,pending:false},
+    {id:"s240",fy:"FY22",type:"Meal",date:"2022-08-26",desc:"Casa Velha",amount:74.9,quinzena:"TR 2022Set Q1",reimbursed:true,pending:false},
+    {id:"s241",fy:"FY22",type:"Meal",date:"2022-08-29",desc:"Restaurante Infante",amount:106.6,quinzena:"TR 2022Set Q1",reimbursed:true,pending:false},
+  ]
+};
+
+// ─── STATE ───
+let appData = null;
+let activeFY = "";
+let filterType = "all";
+let filterStatus = "all";
+let editingId = null;
+let deleteId = null;
+
+// ─── HELPERS ───
+const fmt = v => new Intl.NumberFormat("pt-PT",{style:"currency",currency:"EUR"}).format(v);
+const fmtDate = d => { if(!d) return "—"; const dt=new Date(d+"T00:00:00"); return dt.toLocaleDateString("pt-PT",{day:"2-digit",month:"short",year:"numeric"}); };
+const genId = () => "e"+Date.now()+Math.random().toString(36).slice(2,6);
+function getCurrentFY(){ const n=new Date(),m=n.getMonth()+1,y=n.getFullYear(); return m>=11?`FY${(y+1).toString().slice(2)}`:`FY${y.toString().slice(2)}`; }
+
+// ─── STORAGE ───
+function loadData(){
+  try{ const s=localStorage.getItem(STORAGE_KEY); if(s) return JSON.parse(s); } catch{}
+  return null;
+}
+function saveData(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch{} }
+
+// ─── INIT ───
+function init(){
+  appData = loadData() || JSON.parse(JSON.stringify(DEFAULT_DATA));
+  activeFY = getCurrentFY();
+  if(!appData.configs[activeFY]) activeFY = Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a))[0];
+  render();
+}
+
+// ─── RENDER ───
+function render(){
+  renderTabs();
+  renderDashboard();
+  renderFilters();
+  renderList();
+}
+
+function renderTabs(){
+  const el=document.getElementById("fyTabs");
+  const fys=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a));
+  el.innerHTML=fys.map(fy=>`<button class="fy-tab ${fy===activeFY?"active":""}" onclick="switchFY('${fy}')">${fy}</button>`).join("");
+}
+
+function renderDashboard(){
+  const el=document.getElementById("dashboard");
+  const exps=appData.expenses.filter(e=>e.fy===activeFY);
+  const cfg=appData.configs[activeFY]||{budget:3000};
+  const total=exps.reduce((s,e)=>s+e.amount,0);
+  const pending=exps.filter(e=>e.pending).reduce((s,e)=>s+e.amount,0);
+  const confirmed=total-pending;
+  const avail=cfg.budget-total;
+  const pct=total/cfg.budget;
+  const byType={};
+  CATEGORIES.forEach(c=>{byType[c]=exps.filter(e=>e.type===c).reduce((s,e)=>s+e.amount,0);});
+
+  const size=120,stroke=10,r=(size-stroke)/2,circ=2*Math.PI*r,filled=circ*Math.min(pct,1);
+  const ringColor=pct>1?"#e74c3c":"#e67e22";
+  const pctColor=pct>1?"#e74c3c":"#f0f0f0";
+  const availColor=avail>=0?"#27ae60":"#e74c3c";
+
+  el.innerHTML=`
+    <div class="dash-main">
+      <div class="ring-wrap">
+        <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+          <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="${stroke}"/>
+          <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${ringColor}" stroke-width="${stroke}"
+            stroke-dasharray="${circ}" stroke-dashoffset="${circ-filled}" stroke-linecap="round" style="transition:stroke-dashoffset .6s ease"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" style="color:${pctColor}">${Math.round(pct*100)}%</div>
+          <div class="ring-label">utilizado</div>
+        </div>
+      </div>
+      <div class="dash-grid">
+        <div><div class="dash-item-label">Plafond</div><div class="dash-item-value">${fmt(cfg.budget)}</div></div>
+        <div><div class="dash-item-label" style="color:${availColor}">Disponível</div><div class="dash-item-value" style="color:${availColor}">${fmt(avail)}</div></div>
+        <div><div class="dash-item-label">Confirmado</div><div class="dash-item-value sm">${fmt(confirmed)}</div></div>
+        <div><div class="dash-item-label" style="color:#f39c12">Pendente</div><div class="dash-item-value sm" style="color:#f39c12">${fmt(pending)}</div></div>
+      </div>
+    </div>
+    <div class="cat-grid">
+      ${CATEGORIES.map(c=>`<div class="cat-card" style="border:1px solid ${CAT_COLORS[c]}15"><div class="cat-icon">${CAT_ICONS[c]}</div><div class="cat-name">${c==="Telemóveis"?"Telm.":c}</div><div class="cat-val" style="color:${CAT_COLORS[c]}">${fmt(byType[c])}</div></div>`).join("")}
+    </div>`;
+}
+
+function renderFilters(){
+  const el=document.getElementById("filters");
+  const types=[["all","Todas"],...CATEGORIES.map(c=>[c,c])];
+  const statuses=[["all","Todas"],["pending","Pendentes"],["confirmed","Confirmadas"],["reimbursed","Reembolsadas"]];
+  el.innerHTML=
+    types.map(([k,l])=>{
+      const active=filterType===k;
+      const bg=active?(k==="all"?"rgba(255,255,255,0.12)":(CAT_COLORS[k]||"#fff")+"33"):"rgba(255,255,255,0.04)";
+      const col=active?(k==="all"?"#fff":(CAT_COLORS[k]||"#fff")):"#666";
+      return `<button class="filter-btn" style="background:${bg};color:${col}" onclick="setFilterType('${k}')">${l}</button>`;
+    }).join("")+
+    `<div class="filter-sep"></div>`+
+    statuses.map(([k,l])=>{
+      const active=filterStatus===k;
+      return `<button class="filter-btn" style="background:${active?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)"};color:${active?"#fff":"#666"}" onclick="setFilterStatus('${k}')">${l}</button>`;
+    }).join("");
+}
+
+function renderList(){
+  const el=document.getElementById("listWrap");
+  let list=appData.expenses.filter(e=>e.fy===activeFY);
+  if(filterType!=="all") list=list.filter(e=>e.type===filterType);
+  if(filterStatus==="pending") list=list.filter(e=>e.pending);
+  if(filterStatus==="confirmed") list=list.filter(e=>!e.pending);
+  if(filterStatus==="reimbursed") list=list.filter(e=>e.reimbursed);
+  list.sort((a,b)=>{if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;return b.date.localeCompare(a.date);});
+
+  el.innerHTML=`<div class="list-count">${list.length} despesa${list.length!==1?"s":""}</div>`+
+    (list.length===0?`<div class="empty-state">Sem despesas registadas</div>`:
+    `<div class="exp-list">${list.map(e=>`
+      <div class="exp-row ${e.pending?"pending":""}" onclick="openEdit('${e.id}')">
+        <div class="exp-icon" style="background:${CAT_COLORS[e.type]||CAT_COLORS.Outro}18">${CAT_ICONS[e.type]||"📦"}</div>
+        <div class="exp-info">
+          <div class="exp-desc-row">
+            <span class="exp-desc">${esc(e.desc)}</span>
+            ${e.pending?'<span class="badge badge-pending">PEND.</span>':""}
+            ${e.reimbursed?'<span class="badge badge-reimb">REEMB.</span>':""}
+          </div>
+          <div class="exp-meta">${fmtDate(e.date)}${e.quinzena?" · "+esc(e.quinzena):""}</div>
+        </div>
+        <div class="exp-amount" style="color:${CAT_COLORS[e.type]||CAT_COLORS.Outro}">${fmt(e.amount)}</div>
+        <button class="btn-del" onclick="event.stopPropagation();askDelete('${e.id}')">🗑</button>
+      </div>`).join("")}</div>`);
+}
+
+function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+// ─── ACTIONS ───
+function switchFY(fy){ activeFY=fy; filterType="all"; filterStatus="all"; render(); }
+function setFilterType(t){ filterType=t; renderFilters(); renderList(); }
+function setFilterStatus(s){ filterStatus=s; renderFilters(); renderList(); }
+
+// Form
+function openForm(){
+  editingId=null;
+  document.getElementById("formTitle").textContent="Nova Despesa";
+  renderForm(null);
+  document.getElementById("formModal").classList.add("open");
+}
+function openEdit(id){
+  editingId=id;
+  const exp=appData.expenses.find(e=>e.id===id);
+  document.getElementById("formTitle").textContent="Editar Despesa";
+  renderForm(exp);
+  document.getElementById("formModal").classList.add("open");
+}
+function closeForm(){ document.getElementById("formModal").classList.remove("open"); }
+
+function renderForm(exp){
+  const f=exp||{type:"Galp",date:new Date().toISOString().slice(0,10),desc:"",amount:"",quinzena:"",reimbursed:false,pending:false};
+  document.getElementById("formBody").innerHTML=`
+    <div class="form-group"><label class="form-label">Categoria</label>
+      <div class="cat-btns">${CATEGORIES.map(c=>`<button class="cat-btn" id="catBtn_${c}" style="border:${f.type===c?`2px solid ${CAT_COLORS[c]}`:"1px solid rgba(255,255,255,0.08)"};background:${f.type===c?CAT_COLORS[c]+"22":"transparent"};color:${f.type===c?CAT_COLORS[c]:"#888"}" onclick="selectCat('${c}')">${CAT_ICONS[c]} ${c}</button>`).join("")}</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="fDate" value="${f.date||""}"></div>
+      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fDesc" value="${esc(f.desc)}" placeholder="Ex: Alcochete, Restaurante X..."></div>
+    <div class="form-group"><label class="form-label">Quinzena TR / Extrato</label><input class="form-input" id="fQuinzena" value="${esc(f.quinzena)}" placeholder="Ex: Extrato 2026Mai, TR 2026Mai Q1"></div>
+    <div class="check-row">
+      <label class="check-label"><input type="checkbox" id="fPending" ${f.pending?"checked":""} style="accent-color:#f39c12"> Pendente</label>
+      <label class="check-label"><input type="checkbox" id="fReimb" ${f.reimbursed?"checked":""} style="accent-color:#27ae60"> Reembolsado</label>
+    </div>
+    <div class="btn-row"><button class="btn-cancel" onclick="closeForm()">Cancelar</button><button class="btn-save" onclick="saveForm()">Guardar</button></div>`;
+  window._formCat=f.type;
+}
+
+function selectCat(c){
+  window._formCat=c;
+  CATEGORIES.forEach(cc=>{
+    const btn=document.getElementById("catBtn_"+cc);
+    if(btn){
+      btn.style.border=cc===c?`2px solid ${CAT_COLORS[cc]}`:"1px solid rgba(255,255,255,0.08)";
+      btn.style.background=cc===c?CAT_COLORS[cc]+"22":"transparent";
+      btn.style.color=cc===c?CAT_COLORS[cc]:"#888";
+    }
+  });
+}
+
+function saveForm(){
+  const desc=document.getElementById("fDesc").value.trim();
+  const amount=parseFloat(document.getElementById("fAmount").value);
+  if(!desc||isNaN(amount)) return;
+  const obj={
+    type:window._formCat||"Galp",
+    date:document.getElementById("fDate").value,
+    desc, amount,
+    quinzena:document.getElementById("fQuinzena").value.trim(),
+    pending:document.getElementById("fPending").checked,
+    reimbursed:document.getElementById("fReimb").checked,
+  };
+  if(editingId){
+    const idx=appData.expenses.findIndex(e=>e.id===editingId);
+    if(idx>=0) appData.expenses[idx]={...appData.expenses[idx],...obj};
+  } else {
+    appData.expenses.push({...obj,id:genId(),fy:activeFY});
+  }
+  saveData(); closeForm(); render();
+}
+
+// Delete
+function askDelete(id){ deleteId=id; document.getElementById("deleteModal").classList.add("open"); }
+function closeDelete(){ document.getElementById("deleteModal").classList.remove("open"); }
+function confirmDelete(){ appData.expenses=appData.expenses.filter(e=>e.id!==deleteId); saveData(); closeDelete(); render(); }
+
+// Settings
+function openSettings(){
+  const cfg=appData.configs[activeFY]||{budget:3000,wbs:"GI241002"};
+  document.getElementById("settingsBody").innerHTML=`
+    <div class="settings-field"><label class="form-label">Plafond ${activeFY} (€)</label><input class="form-input" type="number" id="sBudget" value="${cfg.budget}" onchange="updateBudget()"></div>
+    <div class="settings-field"><label class="form-label">WBS</label><div class="wbs-display">${cfg.wbs||"GI241002"}</div></div>
+    <div class="settings-field"><button class="btn-outline-orange" onclick="addNewFY()">+ Criar Novo FY</button></div>
+    <div class="settings-field"><button class="btn-outline-orange" onclick="exportJSON()">📥 Exportar JSON</button></div>
+    <div class="settings-field"><button class="btn-danger" onclick="resetData()">Repor Dados Originais</button></div>`;
+  document.getElementById("settingsModal").classList.add("open");
+}
+function closeSettings(){ document.getElementById("settingsModal").classList.remove("open"); }
+
+function updateBudget(){
+  const v=parseFloat(document.getElementById("sBudget").value)||3000;
+  appData.configs[activeFY].budget=v; saveData(); render();
+}
+function addNewFY(){
+  const nums=Object.keys(appData.configs).map(f=>parseInt(f.slice(2))).sort((a,b)=>b-a);
+  const next=nums[0]+1; const fy=`FY${next}`;
+  appData.configs[fy]={budget:3000,wbs:"GI241002"};
+  saveData(); activeFY=fy; closeSettings(); render();
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(appData,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="despesas_accenture.json"; a.click();
+}
+function resetData(){
+  if(!confirm("Tens a certeza? Todos os dados serão repostos.")) return;
+  appData=JSON.parse(JSON.stringify(DEFAULT_DATA)); saveData(); closeSettings(); render();
+}
+
+// ─── GO ───
+init();
+</script>
+</body>
+</html>
