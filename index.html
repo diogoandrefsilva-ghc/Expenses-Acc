@@ -59,7 +59,7 @@ body{overflow-x:hidden}
 .filters{padding:16px 20px 8px;display:flex;flex-direction:column;gap:8px}
 .filter-row{display:flex;align-items:center;gap:0}
 .filter-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;width:42px}
-.filter-pipe{width:1.5px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;margin:0 10px 0 0;border-radius:1px}
+.filter-pipe{width:1.5px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;margin:0 10px 0 8px;border-radius:1px}
 .filter-btns{display:flex;gap:5px;flex-wrap:wrap}
 .filter-btn{padding:5px 10px;border-radius:14px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
 
@@ -125,14 +125,15 @@ input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weig
 .cat-btn .cat-btn-icon svg{width:24px;height:24px}
 .cat-btn .cat-btn-label{font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.3px}
 
-/* Custom checkboxes */
-.check-row{display:flex;gap:20px;margin:16px 0 6px}
-.check-label{display:flex;align-items:center;gap:8px;font-size:13px;color:#bbb;cursor:pointer;-webkit-user-select:none;user-select:none}
-.check-label input[type="checkbox"]{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.15);background:var(--card2);cursor:pointer;position:relative;flex-shrink:0;transition:all .15s ease}
-.check-label input[type="checkbox"]:checked{border-color:transparent}
-.check-label input[type="checkbox"].chk-pending:checked{background:var(--amber)}
-.check-label input[type="checkbox"].chk-reimb:checked{background:var(--green)}
-.check-label input[type="checkbox"]:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+/* Status toggle buttons */
+.check-row{display:flex;align-items:center;gap:0;margin:16px 0 6px;flex-wrap:wrap}
+.status-group{display:flex;gap:6px;align-items:center}
+.status-pipe{width:1.5px;height:20px;background:rgba(255,255,255,0.1);flex-shrink:0;margin:0 10px;border-radius:1px}
+.status-btn{padding:7px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;color:#666;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;-webkit-user-select:none;user-select:none}
+.status-btn:active{transform:scale(0.95)}
+.status-btn.active-forecast{border-color:rgba(243,156,18,0.4);background:rgba(243,156,18,0.12);color:var(--amber)}
+.status-btn.active-confirmed{border-color:rgba(52,152,219,0.4);background:rgba(52,152,219,0.12);color:var(--blue)}
+.status-btn.active-reimb{border-color:rgba(39,174,96,0.4);background:rgba(39,174,96,0.12);color:var(--green)}
 
 .btn-row{display:flex;gap:10px;margin-top:20px}
 .btn-cancel{flex:1;padding:14px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font);font-weight:500;transition:background .15s}
@@ -500,7 +501,7 @@ function renderDashboard(){
         <div><div class="dash-item-label">Plafond</div><div class="dash-item-value">${fmt(cfg.budget)}</div></div>
         <div><div class="dash-item-label" style="color:${availColor}">Disponível</div><div class="dash-item-value" style="color:${availColor}">${fmt(avail)}</div></div>
         <div><div class="dash-item-label">Confirmado</div><div class="dash-item-value sm">${fmt(confirmed)}</div></div>
-        <div><div class="dash-item-label" style="color:#f39c12">Pendente</div><div class="dash-item-value sm" style="color:#f39c12">${fmt(pending)}</div></div>
+        <div><div class="dash-item-label" style="color:#f39c12">Forecast</div><div class="dash-item-value sm" style="color:#f39c12">${fmt(pending)}</div></div>
       </div>
     </div>
     <div class="cat-grid">
@@ -511,7 +512,7 @@ function renderDashboard(){
 function renderFilters(){
   const el=document.getElementById("filters");
   const types=[["all","Todas"],...CATEGORIES.map(c=>[c,c])];
-  const statuses=[["all","Todas"],["pending","Pendentes"],["confirmed","Confirmadas"],["reimbursed","Reembolsadas"]];
+  const statuses=[["all","Todas"],["forecast","Forecast"],["confirmed","Confirmadas"],["reimbursed","Reembolsadas"]];
   el.innerHTML=
     `<div class="filter-row"><span class="filter-label">Tipo</span><div class="filter-pipe"></div><div class="filter-btns">`+
     types.map(([k,l])=>{
@@ -533,7 +534,7 @@ function renderList(){
   const el=document.getElementById("listWrap");
   let list=appData.expenses.filter(e=>e.fy===activeFY);
   if(filterType!=="all") list=list.filter(e=>e.type===filterType);
-  if(filterStatus==="pending") list=list.filter(e=>e.pending);
+  if(filterStatus==="forecast") list=list.filter(e=>e.pending);
   if(filterStatus==="confirmed") list=list.filter(e=>!e.pending);
   if(filterStatus==="reimbursed") list=list.filter(e=>e.reimbursed);
   list.sort((a,b)=>{if(!a.date&&!b.date)return 0;if(!a.date)return 1;if(!b.date)return -1;return b.date.localeCompare(a.date);});
@@ -541,10 +542,22 @@ function renderList(){
   el.innerHTML=`<div class="list-count">${list.length} despesa${list.length!==1?"s":""}</div>`+
     (list.length===0?`<div class="empty-state">Sem despesas registadas</div>`:
     `<div class="exp-list">${list.map(e=>{
-      const isDone = e.reimbursed;
-      const checkSvg = isDone
-        ? `<div class="exp-status confirmed"><svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`
-        : `<div class="exp-status not-confirmed"><svg viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/></svg></div>`;
+      let checkSvg;
+      if(e.pending){
+        // Forecast: never show check
+        checkSvg = `<div class="exp-status not-confirmed" style="background:rgba(243,156,18,0.1)"><svg viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>`;
+      } else if(e.reimbursed){
+        // Reimbursed: green check
+        checkSvg = `<div class="exp-status confirmed"><svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+      } else if(e.type==="Galp" && e.finalAmount){
+        // Galp with final amount: confirmed (blue check)
+        checkSvg = `<div class="exp-status confirmed" style="background:rgba(52,152,219,0.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+      } else if(!e.pending){
+        // Confirmed (not forecast): blue check
+        checkSvg = `<div class="exp-status confirmed" style="background:rgba(52,152,219,0.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+      } else {
+        checkSvg = `<div class="exp-status not-confirmed"><svg viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/></svg></div>`;
+      }
       const displayAmount = e.finalAmount||e.amount;
       const showProv = e.type==="Galp" && e.finalAmount && e.finalAmount!==e.amount;
       return `
@@ -553,6 +566,8 @@ function renderList(){
         <div class="exp-info">
           <div class="exp-desc-row">
             <span class="exp-desc">${esc(e.desc)}</span>
+            ${e.pending?'<span class="badge badge-pending">FORECAST</span>':""}
+            ${e.reimbursed?'<span class="badge badge-reimb">REEMB.</span>':""}
           </div>
           <div class="exp-meta">${fmtDate(e.date)}${e.quinzena?" · "+esc(e.quinzena):""}</div>
         </div>
@@ -590,6 +605,7 @@ function closeForm(){ document.getElementById("formModal").classList.remove("ope
 function renderForm(exp){
   const f=exp||{type:"Galp",date:new Date().toISOString().slice(0,10),desc:"",amount:"",finalAmount:"",quinzena:"",reimbursed:false,pending:false};
   const isGalp=f.type==="Galp";
+  const isMeal=f.type==="Meal";
   const amountRow = isGalp
     ? `<div class="form-row">
         <div class="form-group"><label class="form-label">Provisório</label><div class="input-currency-wrap"><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00" inputmode="decimal"></div></div>
@@ -602,7 +618,34 @@ function renderForm(exp){
   const dateRowGalp = isGalp
     ? `<div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="fDate" value="${f.date||""}"></div>`
     : "";
-  const reimbLabel = isGalp ? "Confirmado" : "Reembolsado";
+
+  // Determine status state
+  const isForecast = f.pending;
+  const isConfirmed = !f.pending;
+  const isReimb = f.reimbursed;
+
+  let statusRow = "";
+  if(isGalp){
+    // Galp: only Forecast toggle (confirmed = has finalAmount, automatic)
+    statusRow = `<div class="check-row">
+      <div class="status-group">
+        <button type="button" class="status-btn ${isForecast?"active-forecast":""}" id="fForecast" onclick="toggleForecastGalp()">Forecast</button>
+      </div>
+    </div>`;
+  } else {
+    // Others: Forecast | Confirmada + pipe + Reembolsada (Meal only)
+    statusRow = `<div class="check-row">
+      <div class="status-group">
+        <button type="button" class="status-btn ${isForecast?"active-forecast":""}" id="fForecast" onclick="toggleStatus('forecast')">Forecast</button>
+        <button type="button" class="status-btn ${isConfirmed?"active-confirmed":""}" id="fConfirmed" onclick="toggleStatus('confirmed')">Confirmada</button>
+      </div>
+      ${isMeal?`<div class="status-pipe"></div>
+      <div class="status-group">
+        <button type="button" class="status-btn ${isReimb?"active-reimb":""}" id="fReimb" onclick="toggleReimb()">Reembolsada</button>
+      </div>`:""}
+    </div>`;
+  }
+
   document.getElementById("formBody").innerHTML=`
     <div class="form-group"><label class="form-label">Categoria</label>
       <div class="cat-btns">${CATEGORIES.map(c=>`<button class="cat-btn" id="catBtn_${c}" style="border:${f.type===c?`2px solid ${CAT_COLORS[c]}`:"1.5px solid rgba(255,255,255,0.06)"};background:${f.type===c?CAT_COLORS[c]+"22":"transparent"};color:${f.type===c?CAT_COLORS[c]:"#666"}" onclick="selectCat('${c}')"><span class="cat-btn-icon">${CAT_ICONS[c]}</span><span class="cat-btn-label">${c}</span></button>`).join("")}</div>
@@ -611,17 +654,37 @@ function renderForm(exp){
     ${amountRow}
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fDesc" value="${esc(f.desc)}" placeholder="Ex: Alcochete, Restaurante X..."></div>
     <div class="form-group"><label class="form-label">Quinzena TR / Extrato</label><input class="form-input" id="fQuinzena" value="${esc(f.quinzena)}" placeholder="Ex: Extrato 2026Mai, TR 2026Mai Q1"></div>
-    <div class="check-row">
-      <label class="check-label"><input type="checkbox" class="chk-pending" id="fPending" ${f.pending?"checked":""}> Pendente</label>
-      <label class="check-label"><input type="checkbox" class="chk-reimb" id="fReimb" ${f.reimbursed?"checked":""}> ${reimbLabel}</label>
-    </div>
+    ${statusRow}
     <div class="btn-row"><button class="btn-cancel" onclick="closeForm()">Cancelar</button><button class="btn-save" onclick="saveForm()">Guardar</button></div>
     ${editingId?'<div style="margin-top:12px"><button class="btn-danger" onclick="askDeleteFromEdit()">🗑 Apagar Despesa</button></div>':''}`;
   window._formCat=f.type;
+  window._formForecast=isForecast;
+  window._formReimb=isReimb;
+}
+
+function toggleForecastGalp(){
+  window._formForecast=!window._formForecast;
+  const btn=document.getElementById("fForecast");
+  btn.classList.toggle("active-forecast",window._formForecast);
+}
+
+function toggleStatus(which){
+  if(which==="forecast"){
+    window._formForecast=true;
+  } else {
+    window._formForecast=false;
+  }
+  document.getElementById("fForecast").classList.toggle("active-forecast",window._formForecast);
+  document.getElementById("fConfirmed").classList.toggle("active-confirmed",!window._formForecast);
+}
+
+function toggleReimb(){
+  window._formReimb=!window._formReimb;
+  const btn=document.getElementById("fReimb");
+  btn.classList.toggle("active-reimb",window._formReimb);
 }
 
 function selectCat(c){
-  // Capture current form values before re-render
   const currentValues = {
     type: c,
     date: document.getElementById("fDate")?.value || "",
@@ -629,8 +692,8 @@ function selectCat(c){
     amount: document.getElementById("fAmount")?.value || "",
     finalAmount: document.getElementById("fFinalAmount")?.value || "",
     quinzena: document.getElementById("fQuinzena")?.value || "",
-    pending: document.getElementById("fPending")?.checked || false,
-    reimbursed: document.getElementById("fReimb")?.checked || false,
+    pending: window._formForecast || false,
+    reimbursed: window._formReimb || false,
   };
   window._formCat = c;
   renderForm(currentValues);
@@ -649,11 +712,9 @@ function saveForm(){
     desc, amount,
     finalAmount: cat==="Galp"&&!isNaN(finalVal)?finalVal:null,
     quinzena:document.getElementById("fQuinzena").value.trim(),
-    pending:document.getElementById("fPending").checked,
-    reimbursed:document.getElementById("fReimb").checked,
+    pending:window._formForecast||false,
+    reimbursed:cat==="Meal"?(window._formReimb||false):false,
   };
-  // Auto-confirm Galp when final amount is set
-  if(cat==="Galp"&&obj.finalAmount) obj.reimbursed=true;
   if(editingId){
     const idx=appData.expenses.findIndex(e=>e.id===editingId);
     if(idx>=0) appData.expenses[idx]={...appData.expenses[idx],...obj};
