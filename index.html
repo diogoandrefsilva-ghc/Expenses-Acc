@@ -379,8 +379,8 @@ function renderDashboard(){
   const eff=e=>e.finalAmount||e.amount;
   const total=exps.reduce((s,e)=>s+eff(e),0);
   const forecast=exps.filter(e=>e.pending).reduce((s,e)=>s+eff(e),0);
-  const confirmed=total-forecast-provisorias;
   const provisorias=exps.filter(e=>e.type==="Galp"&&!e.finalAmount&&!e.pending&&!e.reimbursed).reduce((s,e)=>s+e.amount,0);
+  const confirmed=total-forecast-provisorias;
   const avail=cfg.budget-total;
   const pct=total/cfg.budget;
   const byType={};
