@@ -56,10 +56,7 @@ body{overflow-x:hidden}
 .cat-val{font-size:13px;font-weight:700;font-family:var(--mono);margin-top:2px}
 .cat-avg{font-size:9px;color:#666;font-family:var(--mono);margin-top:1px;font-weight:500}
 
-/* Comparison dashboard */
-.comparison-wrap{padding:12px 20px 0}
-.comp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.comp-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+/* Comparison table */
 .comp-table{background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid var(--border);overflow:hidden}
 .comp-row{display:grid;grid-template-columns:48px repeat(4,1fr) 72px;align-items:center;padding:8px 10px;position:relative;gap:2px}
 .comp-row:not(:last-child){border-bottom:1px solid var(--border)}
@@ -192,7 +189,6 @@ input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weig
 </div>
 
 <div class="dashboard" id="dashboard"></div>
-<div class="comparison-wrap" id="comparisonDash"></div>
 <div class="filters" id="filters"></div>
 <div class="list-wrap" id="listWrap"></div>
 <button class="fab" onclick="openForm()">+</button>
@@ -234,6 +230,18 @@ input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weig
       <button class="btn-close" onclick="closeSettings()">✕</button>
     </div>
     <div id="settingsBody"></div>
+  </div>
+</div>
+
+<!-- Comparison Modal -->
+<div class="overlay" id="comparisonModal">
+  <div class="overlay-bg" onclick="closeComparison()"></div>
+  <div class="modal" style="max-height:95vh">
+    <div class="modal-header">
+      <span class="modal-title">Comparação por FY</span>
+      <button class="btn-close" onclick="closeComparison()">✕</button>
+    </div>
+    <div id="comparisonBody"></div>
   </div>
 </div>
 
@@ -480,7 +488,7 @@ function render(){
 function renderTabs(){
   const el=document.getElementById("fyTabs");
   const fys=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a));
-  el.innerHTML=fys.map(fy=>`<button class="fy-tab ${fy===activeFY?"active":""}" onclick="switchFY('${fy}')">${fy}</button>`).join("");
+  el.innerHTML=`<button class="fy-tab comp-tab" onclick="openComparison()" style="background:rgba(230,126,34,0.12);color:var(--orange);border:1px solid rgba(230,126,34,0.2);gap:4px;display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Comp.</button>`+fys.map(fy=>`<button class="fy-tab ${fy===activeFY?"active":""}" onclick="switchFY('${fy}')">${fy}</button>`).join("");
 }
 
 function renderDashboard(){
@@ -491,15 +499,25 @@ function renderDashboard(){
   const total=exps.reduce((s,e)=>s+eff(e),0);
   const forecast=exps.filter(e=>e.pending).reduce((s,e)=>s+eff(e),0);
   const confirmed=total-forecast;
-  const provisorias=exps.filter(e=>e.type==="Galp"&&!e.finalAmount&&!e.pending).reduce((s,e)=>s+e.amount,0);
+  const provisorias=exps.filter(e=>e.type==="Galp"&&!e.finalAmount&&!e.pending&&!e.reimbursed).reduce((s,e)=>s+e.amount,0);
   const avail=cfg.budget-total;
   const pct=total/cfg.budget;
   const byType={};
-  const countByType={};
+  const monthsByType={};
   CATEGORIES.forEach(c=>{
     const items=exps.filter(e=>e.type===c);
     byType[c]=items.reduce((s,e)=>s+eff(e),0);
-    countByType[c]=items.length;
+    // Count distinct months for monthly average
+    const months=new Set();
+    items.forEach(e=>{
+      if(e.date) months.add(e.date.slice(0,7));
+      else {
+        // For expenses without date, use quinzena or just count as 1 month
+        if(e.quinzena) months.add(e.quinzena);
+        else months.add("no-date-"+e.id);
+      }
+    });
+    monthsByType[c]=months.size;
   });
 
   const size=120,stroke=10,r=(size-stroke)/2,circ=2*Math.PI*r,filled=circ*Math.min(pct,1);
@@ -530,21 +548,26 @@ function renderDashboard(){
     </div>
     <div class="cat-grid">
       ${CATEGORIES.map(c=>{
-        const avg=countByType[c]>0?(byType[c]/countByType[c]):0;
+        const nMonths=monthsByType[c]||1;
+        const avg=byType[c]/nMonths;
         return `<div class="cat-card" style="border:1px solid ${CAT_COLORS[c]}15">
           <div class="cat-icon">${CAT_ICONS[c]}</div>
           <div class="cat-name">${c==="Telemóveis"?"Telm.":c}</div>
           <div class="cat-val" style="color:${CAT_COLORS[c]}">${fmt(byType[c])}</div>
-          <div class="cat-avg">μ ${fmt(avg)}</div>
+          <div class="cat-avg">μ/m ${fmt(avg)}</div>
         </div>`;
       }).join("")}
     </div>`;
-
-  renderComparison();
 }
 
+function openComparison(){
+  renderComparison();
+  document.getElementById("comparisonModal").classList.add("open");
+}
+function closeComparison(){ document.getElementById("comparisonModal").classList.remove("open"); }
+
 function renderComparison(){
-  const wrap=document.getElementById("comparisonDash");
+  const wrap=document.getElementById("comparisonBody");
   const fys=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a));
   const eff=e=>e.finalAmount||e.amount;
 
@@ -558,10 +581,31 @@ function renderComparison(){
 
   const maxTotal=Math.max(...data.map(d=>d.total),1);
 
+  // Monthly averages across all FYs
+  const allExps=appData.expenses;
+  const monthlyAvgs={};
+  CATEGORIES.forEach(c=>{
+    const catExps=allExps.filter(e=>e.type===c);
+    const months=new Set();
+    catExps.forEach(e=>{
+      if(e.date) months.add(e.date.slice(0,7));
+      else if(e.quinzena) months.add(e.quinzena);
+      else months.add("nd-"+e.id);
+    });
+    const totalCat=catExps.reduce((s,e)=>s+eff(e),0);
+    const nMonths=months.size||1;
+    monthlyAvgs[c]=totalCat/nMonths;
+  });
+  const totalAll=allExps.reduce((s,e)=>s+eff(e),0);
+  const allMonths=new Set();
+  allExps.forEach(e=>{
+    if(e.date) allMonths.add(e.date.slice(0,7));
+    else if(e.quinzena) allMonths.add(e.quinzena);
+    else allMonths.add("nd-"+e.id);
+  });
+  const avgTotal=totalAll/(allMonths.size||1);
+
   wrap.innerHTML=`
-    <div class="comp-header">
-      <span class="comp-title">Comparação por FY</span>
-    </div>
     <div class="comp-table">
       <div class="comp-row comp-row-head">
         <div class="comp-cell comp-fy-cell"></div>
@@ -577,6 +621,11 @@ function renderComparison(){
           <div class="comp-bar-track"><div class="comp-bar" style="width:${barW}%;background:linear-gradient(90deg,var(--orange),var(--amber))"></div></div>
         </div>`;
       }).join("")}
+      <div class="comp-row" style="border-top:2px solid rgba(230,126,34,0.2);background:rgba(230,126,34,0.04)">
+        <div class="comp-cell comp-fy-cell" style="font-size:9px;color:var(--text2)">μ/mês</div>
+        ${CATEGORIES.map(c=>`<div class="comp-cell" style="color:${CAT_COLORS[c]};opacity:0.7;font-size:10px">${fmt(monthlyAvgs[c])}</div>`).join("")}
+        <div class="comp-cell comp-total-cell" style="font-size:10px;opacity:0.7">${fmt(avgTotal)}</div>
+      </div>
     </div>`;
 }
 
