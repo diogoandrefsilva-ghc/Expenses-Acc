@@ -23,7 +23,7 @@ body{overflow-x:hidden}
 
 /* Header */
 .header{background:linear-gradient(160deg,var(--card) 0%,var(--card2) 100%);padding:24px 20px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
-.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .brand-label{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--orange);text-transform:uppercase}
 .brand-title{font-size:20px;font-weight:700;margin-top:2px}
 .btn-settings{background:rgba(255,255,255,0.06);border:none;border-radius:10px;padding:8px 12px;color:var(--text2);font-size:18px;cursor:pointer}
@@ -81,32 +81,74 @@ body{overflow-x:hidden}
 .fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--orange),var(--amber));border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(230,126,34,0.4);display:flex;align-items:center;justify-content:center;z-index:50}
 
 /* Modal */
-.overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center}
-.overlay.open{display:flex}
-.overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px)}
-.modal{position:relative;background:var(--card);border-radius:16px;padding:28px;width:min(92vw,440px);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid var(--border)}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.modal-title{font-size:18px;font-weight:600}
-.btn-close{background:none;border:none;color:#888;font-size:22px;cursor:pointer;padding:4px}
+.overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s ease}
+.overlay.open{opacity:1;visibility:visible}
+.overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px)}
+.modal{position:relative;background:linear-gradient(180deg,#1e2128 0%,var(--card) 100%);border-radius:20px 20px 0 0;padding:28px 24px calc(env(safe-area-inset-bottom,0px) + 24px);width:100%;max-width:500px;max-height:92vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,0.5);border:1px solid var(--border);border-bottom:none;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,.24,1)}
+.overlay.open .modal{transform:translateY(0)}
+.modal::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:36px;height:4px;border-radius:4px;background:rgba(255,255,255,0.15)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;padding-top:8px}
+.modal-title{font-size:19px;font-weight:700;letter-spacing:-0.2px}
+.btn-close{background:rgba(255,255,255,0.06);border:none;color:#888;font-size:18px;cursor:pointer;padding:6px 8px;border-radius:8px;transition:background .15s}
+.btn-close:active{background:rgba(255,255,255,0.12)}
 
 /* Form */
-.form-group{margin-bottom:14px}
-.form-label{display:block;margin-bottom:4px;font-size:12px;color:var(--text2);font-weight:500}
-.form-input{width:100%;padding:10px 12px;background:var(--card2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
-.form-input:focus{border-color:rgba(230,126,34,0.4)}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.cat-btns{display:flex;gap:6px}
-.cat-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--font);font-weight:600;transition:all .15s}
-.check-row{display:flex;gap:16px;margin:14px 0 4px}
-.check-label{display:flex;align-items:center;gap:6px;font-size:13px;color:#ccc;cursor:pointer}
-.btn-row{display:flex;gap:10px;margin-top:18px}
-.btn-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font)}
-.btn-save{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),var(--amber));color:#fff;font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font)}
-.btn-danger{padding:12px;border-radius:10px;border:1px solid rgba(231,76,60,0.3);background:rgba(231,76,60,0.08);color:var(--red);font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font);width:100%}
-.btn-outline-orange{padding:12px;border-radius:10px;border:1px solid rgba(230,126,34,0.3);background:rgba(230,126,34,0.08);color:var(--orange);font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font);width:100%}
+.form-group{margin-bottom:16px}
+.form-label{display:block;margin-bottom:6px;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.form-input{width:100%;padding:12px 14px;background:var(--card2);border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.form-input:focus{border-color:rgba(230,126,34,0.5);box-shadow:0 0 0 3px rgba(230,126,34,0.08)}
+.form-input::placeholder{color:#555}
+input[type="date"].form-input{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:.3px}
+input[type="date"].form-input::-webkit-calendar-picker-indicator{filter:invert(0.6);opacity:0.6;cursor:pointer}
+input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.3px}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row .form-group{margin-bottom:16px}
+
+/* Inline label+input alignment trick — both columns share identical structure */
+.form-row .form-label{height:16px;line-height:16px}
+.form-row .form-input{height:48px}
+
+.cat-btns{display:flex;gap:8px}
+.cat-btn{flex:1;padding:12px 4px;border-radius:12px;font-size:11px;cursor:pointer;font-family:var(--font);font-weight:600;transition:all .2s ease;display:flex;flex-direction:column;align-items:center;gap:6px}
+.cat-btn:active{transform:scale(0.95)}
+.cat-btn .cat-btn-icon{font-size:22px;line-height:1}
+.cat-btn .cat-btn-label{font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.3px}
+
+/* Custom checkboxes */
+.check-row{display:flex;gap:20px;margin:16px 0 6px}
+.check-label{display:flex;align-items:center;gap:8px;font-size:13px;color:#bbb;cursor:pointer;-webkit-user-select:none;user-select:none}
+.check-label input[type="checkbox"]{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.15);background:var(--card2);cursor:pointer;position:relative;flex-shrink:0;transition:all .15s ease}
+.check-label input[type="checkbox"]:checked{border-color:transparent}
+.check-label input[type="checkbox"].chk-pending:checked{background:var(--amber)}
+.check-label input[type="checkbox"].chk-reimb:checked{background:var(--green)}
+.check-label input[type="checkbox"]:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+
+.btn-row{display:flex;gap:10px;margin-top:20px}
+.btn-cancel{flex:1;padding:14px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font);font-weight:500;transition:background .15s}
+.btn-cancel:active{background:rgba(255,255,255,0.04)}
+.btn-save{flex:1;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--orange),var(--amber));color:#fff;font-size:14px;cursor:pointer;font-weight:700;font-family:var(--font);letter-spacing:.2px;transition:opacity .15s,transform .1s}
+.btn-save:active{opacity:0.85;transform:scale(0.98)}
+.btn-danger{padding:14px;border-radius:12px;border:1.5px solid rgba(231,76,60,0.25);background:rgba(231,76,60,0.06);color:var(--red);font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font);width:100%;transition:background .15s}
+.btn-danger:active{background:rgba(231,76,60,0.12)}
+.btn-outline-orange{padding:14px;border-radius:12px;border:1.5px solid rgba(230,126,34,0.25);background:rgba(230,126,34,0.06);color:var(--orange);font-size:14px;cursor:pointer;font-weight:600;font-family:var(--font);width:100%;transition:background .15s}
+.btn-outline-orange:active{background:rgba(230,126,34,0.12)}
 .settings-field{margin-bottom:16px}
-.wbs-display{padding:10px 12px;background:var(--card2);border-radius:8px;color:var(--orange);font-size:14px;font-family:var(--mono)}
+.wbs-display{padding:12px 14px;background:var(--card2);border-radius:10px;color:var(--orange);font-size:14px;font-family:var(--mono)}
 .empty-state{text-align:center;padding:40px;color:#555;font-size:14px}
+
+/* € prefix inside valor input */
+.input-currency-wrap{position:relative}
+.input-currency-wrap .form-input{padding-left:32px}
+.input-currency-wrap::before{content:"€";position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#666;font-size:14px;font-family:var(--mono);font-weight:600;pointer-events:none}
+
+/* Desktop: centered modal instead of bottom sheet */
+@media(min-width:600px){
+  .overlay{align-items:center}
+  .modal{border-radius:20px;max-width:460px;border-bottom:1px solid var(--border);transform:translateY(24px) scale(0.97);opacity:0;transition:transform .3s cubic-bezier(.32,.72,.24,1),opacity .25s ease}
+  .overlay.open .modal{transform:translateY(0) scale(1);opacity:1}
+  .modal::before{display:none}
+}
 </style>
 </head>
 <body>
@@ -527,19 +569,20 @@ function renderForm(exp){
   const f=exp||{type:"Galp",date:new Date().toISOString().slice(0,10),desc:"",amount:"",quinzena:"",reimbursed:false,pending:false};
   document.getElementById("formBody").innerHTML=`
     <div class="form-group"><label class="form-label">Categoria</label>
-      <div class="cat-btns">${CATEGORIES.map(c=>`<button class="cat-btn" id="catBtn_${c}" style="border:${f.type===c?`2px solid ${CAT_COLORS[c]}`:"1px solid rgba(255,255,255,0.08)"};background:${f.type===c?CAT_COLORS[c]+"22":"transparent"};color:${f.type===c?CAT_COLORS[c]:"#888"}" onclick="selectCat('${c}')">${CAT_ICONS[c]} ${c}</button>`).join("")}</div>
+      <div class="cat-btns">${CATEGORIES.map(c=>`<button class="cat-btn" id="catBtn_${c}" style="border:${f.type===c?`2px solid ${CAT_COLORS[c]}`:"1.5px solid rgba(255,255,255,0.06)"};background:${f.type===c?CAT_COLORS[c]+"22":"transparent"};color:${f.type===c?CAT_COLORS[c]:"#666"}" onclick="selectCat('${c}')"><span class="cat-btn-icon">${CAT_ICONS[c]}</span><span class="cat-btn-label">${c}</span></button>`).join("")}</div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="fDate" value="${f.date||""}"></div>
-      <div class="form-group"><label class="form-label">Valor (€)</label><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00"></div>
+      <div class="form-group"><label class="form-label">Valor</label><div class="input-currency-wrap"><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00" inputmode="decimal"></div></div>
     </div>
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fDesc" value="${esc(f.desc)}" placeholder="Ex: Alcochete, Restaurante X..."></div>
     <div class="form-group"><label class="form-label">Quinzena TR / Extrato</label><input class="form-input" id="fQuinzena" value="${esc(f.quinzena)}" placeholder="Ex: Extrato 2026Mai, TR 2026Mai Q1"></div>
     <div class="check-row">
-      <label class="check-label"><input type="checkbox" id="fPending" ${f.pending?"checked":""} style="accent-color:#f39c12"> Pendente</label>
-      <label class="check-label"><input type="checkbox" id="fReimb" ${f.reimbursed?"checked":""} style="accent-color:#27ae60"> Reembolsado</label>
+      <label class="check-label"><input type="checkbox" class="chk-pending" id="fPending" ${f.pending?"checked":""}> Pendente</label>
+      <label class="check-label"><input type="checkbox" class="chk-reimb" id="fReimb" ${f.reimbursed?"checked":""}> Reembolsado</label>
     </div>
-    <div class="btn-row"><button class="btn-cancel" onclick="closeForm()">Cancelar</button><button class="btn-save" onclick="saveForm()">Guardar</button></div>`;
+    <div class="btn-row"><button class="btn-cancel" onclick="closeForm()">Cancelar</button><button class="btn-save" onclick="saveForm()">Guardar</button></div>
+    ${editingId?'<div style="margin-top:12px"><button class="btn-danger" onclick="askDeleteFromEdit()">🗑 Apagar Despesa</button></div>':''}`;
   window._formCat=f.type;
 }
 
@@ -548,9 +591,9 @@ function selectCat(c){
   CATEGORIES.forEach(cc=>{
     const btn=document.getElementById("catBtn_"+cc);
     if(btn){
-      btn.style.border=cc===c?`2px solid ${CAT_COLORS[cc]}`:"1px solid rgba(255,255,255,0.08)";
+      btn.style.border=cc===c?`2px solid ${CAT_COLORS[cc]}`:"1.5px solid rgba(255,255,255,0.06)";
       btn.style.background=cc===c?CAT_COLORS[cc]+"22":"transparent";
-      btn.style.color=cc===c?CAT_COLORS[cc]:"#888";
+      btn.style.color=cc===c?CAT_COLORS[cc]:"#666";
     }
   });
 }
@@ -578,6 +621,7 @@ function saveForm(){
 
 // Delete
 function askDelete(id){ deleteId=id; document.getElementById("deleteModal").classList.add("open"); }
+function askDeleteFromEdit(){ closeForm(); askDelete(editingId); }
 function closeDelete(){ document.getElementById("deleteModal").classList.remove("open"); }
 function confirmDelete(){ appData.expenses=appData.expenses.filter(e=>e.id!==deleteId); saveData(); closeDelete(); render(); }
 
