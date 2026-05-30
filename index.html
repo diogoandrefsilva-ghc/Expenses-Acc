@@ -54,6 +54,22 @@ body{overflow-x:hidden}
 .cat-icon svg{width:18px;height:18px}
 .cat-name{font-size:9px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
 .cat-val{font-size:13px;font-weight:700;font-family:var(--mono);margin-top:2px}
+.cat-avg{font-size:9px;color:#666;font-family:var(--mono);margin-top:1px;font-weight:500}
+
+/* Comparison dashboard */
+.comparison-wrap{padding:12px 20px 0}
+.comp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.comp-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.comp-table{background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.comp-row{display:grid;grid-template-columns:48px repeat(4,1fr) 72px;align-items:center;padding:8px 10px;position:relative;gap:2px}
+.comp-row:not(:last-child){border-bottom:1px solid var(--border)}
+.comp-row-head{background:rgba(255,255,255,0.02)}
+.comp-row-head .comp-cell{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#666}
+.comp-cell{font-size:11px;font-family:var(--mono);font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.comp-fy-cell{text-align:left;font-weight:700;color:var(--text)}
+.comp-total-cell{font-weight:700;color:var(--text)}
+.comp-bar-track{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.03)}
+.comp-bar{height:100%;border-radius:1px;transition:width .4s ease}
 
 /* Filters */
 .filters{padding:16px 20px 8px;display:flex;flex-direction:column;gap:8px}
@@ -176,6 +192,7 @@ input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weig
 </div>
 
 <div class="dashboard" id="dashboard"></div>
+<div class="comparison-wrap" id="comparisonDash"></div>
 <div class="filters" id="filters"></div>
 <div class="list-wrap" id="listWrap"></div>
 <button class="fab" onclick="openForm()">+</button>
@@ -472,12 +489,18 @@ function renderDashboard(){
   const cfg=appData.configs[activeFY]||{budget:3000};
   const eff=e=>e.finalAmount||e.amount;
   const total=exps.reduce((s,e)=>s+eff(e),0);
-  const pending=exps.filter(e=>e.pending).reduce((s,e)=>s+eff(e),0);
-  const confirmed=total-pending;
+  const forecast=exps.filter(e=>e.pending).reduce((s,e)=>s+eff(e),0);
+  const confirmed=total-forecast;
+  const provisorias=exps.filter(e=>e.type==="Galp"&&!e.finalAmount&&!e.pending).reduce((s,e)=>s+e.amount,0);
   const avail=cfg.budget-total;
   const pct=total/cfg.budget;
   const byType={};
-  CATEGORIES.forEach(c=>{byType[c]=exps.filter(e=>e.type===c).reduce((s,e)=>s+eff(e),0);});
+  const countByType={};
+  CATEGORIES.forEach(c=>{
+    const items=exps.filter(e=>e.type===c);
+    byType[c]=items.reduce((s,e)=>s+eff(e),0);
+    countByType[c]=items.length;
+  });
 
   const size=120,stroke=10,r=(size-stroke)/2,circ=2*Math.PI*r,filled=circ*Math.min(pct,1);
   const ringColor=pct>1?"#e74c3c":"#e67e22";
@@ -497,15 +520,63 @@ function renderDashboard(){
           <div class="ring-label">utilizado</div>
         </div>
       </div>
-      <div class="dash-grid">
+      <div class="dash-grid" style="grid-template-columns:1fr 1fr">
         <div><div class="dash-item-label">Plafond</div><div class="dash-item-value">${fmt(cfg.budget)}</div></div>
         <div><div class="dash-item-label" style="color:${availColor}">Disponível</div><div class="dash-item-value" style="color:${availColor}">${fmt(avail)}</div></div>
         <div><div class="dash-item-label">Confirmado</div><div class="dash-item-value sm">${fmt(confirmed)}</div></div>
-        <div><div class="dash-item-label" style="color:#f39c12">Forecast</div><div class="dash-item-value sm" style="color:#f39c12">${fmt(pending)}</div></div>
+        <div><div class="dash-item-label" style="color:#f39c12">Forecast</div><div class="dash-item-value sm" style="color:#f39c12">${fmt(forecast)}</div></div>
+        ${provisorias>0?`<div style="grid-column:span 2"><div class="dash-item-label" style="color:#9b59b6">Provisório (Galp s/ extrato)</div><div class="dash-item-value sm" style="color:#9b59b6">${fmt(provisorias)}</div></div>`:""}
       </div>
     </div>
     <div class="cat-grid">
-      ${CATEGORIES.map(c=>`<div class="cat-card" style="border:1px solid ${CAT_COLORS[c]}15"><div class="cat-icon">${CAT_ICONS[c]}</div><div class="cat-name">${c==="Telemóveis"?"Telm.":c}</div><div class="cat-val" style="color:${CAT_COLORS[c]}">${fmt(byType[c])}</div></div>`).join("")}
+      ${CATEGORIES.map(c=>{
+        const avg=countByType[c]>0?(byType[c]/countByType[c]):0;
+        return `<div class="cat-card" style="border:1px solid ${CAT_COLORS[c]}15">
+          <div class="cat-icon">${CAT_ICONS[c]}</div>
+          <div class="cat-name">${c==="Telemóveis"?"Telm.":c}</div>
+          <div class="cat-val" style="color:${CAT_COLORS[c]}">${fmt(byType[c])}</div>
+          <div class="cat-avg">μ ${fmt(avg)}</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+
+  renderComparison();
+}
+
+function renderComparison(){
+  const wrap=document.getElementById("comparisonDash");
+  const fys=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a));
+  const eff=e=>e.finalAmount||e.amount;
+
+  // Build data per FY
+  const data=fys.map(fy=>{
+    const exps=appData.expenses.filter(e=>e.fy===fy);
+    const row={fy,total:exps.reduce((s,e)=>s+eff(e),0)};
+    CATEGORIES.forEach(c=>{row[c]=exps.filter(e=>e.type===c).reduce((s,e)=>s+eff(e),0);});
+    return row;
+  });
+
+  const maxTotal=Math.max(...data.map(d=>d.total),1);
+
+  wrap.innerHTML=`
+    <div class="comp-header">
+      <span class="comp-title">Comparação por FY</span>
+    </div>
+    <div class="comp-table">
+      <div class="comp-row comp-row-head">
+        <div class="comp-cell comp-fy-cell"></div>
+        ${CATEGORIES.map(c=>`<div class="comp-cell" style="color:${CAT_COLORS[c]}">${c==="Telemóveis"?"Telm.":c}</div>`).join("")}
+        <div class="comp-cell comp-total-cell">Total</div>
+      </div>
+      ${data.map(d=>{
+        const barW=Math.round((d.total/maxTotal)*100);
+        return `<div class="comp-row">
+          <div class="comp-cell comp-fy-cell">${d.fy}</div>
+          ${CATEGORIES.map(c=>`<div class="comp-cell" style="color:${CAT_COLORS[c]}">${fmt(d[c])}</div>`).join("")}
+          <div class="comp-cell comp-total-cell">${fmt(d.total)}</div>
+          <div class="comp-bar-track"><div class="comp-bar" style="width:${barW}%;background:linear-gradient(90deg,var(--orange),var(--amber))"></div></div>
+        </div>`;
+      }).join("")}
     </div>`;
 }
 
@@ -566,8 +637,6 @@ function renderList(){
         <div class="exp-info">
           <div class="exp-desc-row">
             <span class="exp-desc">${esc(e.desc)}</span>
-            ${e.pending?'<span class="badge badge-pending">FORECAST</span>':""}
-            ${e.reimbursed?'<span class="badge badge-reimb">REEMB.</span>':""}
           </div>
           <div class="exp-meta">${fmtDate(e.date)}${e.quinzena?" · "+esc(e.quinzena):""}</div>
         </div>
