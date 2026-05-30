@@ -50,14 +50,16 @@ body{overflow-x:hidden}
 /* Category cards */
 .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .cat-card{background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 8px;text-align:center}
-.cat-icon{font-size:16px}
+.cat-icon{font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}
+.cat-icon svg{width:18px;height:18px}
 .cat-name{font-size:9px;color:#888;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
 .cat-val{font-size:13px;font-weight:700;font-family:var(--mono);margin-top:2px}
 
 /* Filters */
 .filters{padding:16px 20px 8px;display:flex;flex-direction:column;gap:8px}
-.filter-row{display:flex;align-items:center;gap:8px}
-.filter-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;min-width:38px}
+.filter-row{display:flex;align-items:center;gap:0}
+.filter-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;width:42px}
+.filter-pipe{width:1.5px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;margin:0 10px 0 0;border-radius:1px}
 .filter-btns{display:flex;gap:5px;flex-wrap:wrap}
 .filter-btn{padding:5px 10px;border-radius:14px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s}
 
@@ -69,6 +71,7 @@ body{overflow-x:hidden}
 .exp-row:active{background:rgba(255,255,255,0.06)}
 .exp-row.pending{border-color:rgba(243,156,18,0.2)}
 .exp-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.exp-icon svg{width:20px;height:20px}
 .exp-info{flex:1;min-width:0}
 .exp-desc-row{display:flex;align-items:center;gap:6px}
 .exp-desc{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -76,8 +79,12 @@ body{overflow-x:hidden}
 .badge-pending{background:var(--amber);color:#000}
 .badge-reimb{background:rgba(39,174,96,0.2);color:var(--green)}
 .exp-meta{font-size:11px;color:#777;margin-top:2px}
-.exp-amount{font-size:15px;font-weight:700;font-family:var(--mono);flex-shrink:0}
-.btn-del{background:none;border:none;color:#555;font-size:16px;cursor:pointer;padding:4px;flex-shrink:0}
+.exp-amount{font-size:15px;font-weight:700;font-family:var(--mono);flex-shrink:0;text-align:right}
+.exp-amount-prov{font-size:10px;color:#666;font-family:var(--mono);text-decoration:line-through;font-weight:500}
+.exp-status{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.exp-status svg{width:13px;height:13px}
+.exp-status.confirmed{background:rgba(39,174,96,0.15)}
+.exp-status.not-confirmed{background:rgba(255,255,255,0.04)}
 
 /* FAB */
 .fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--orange),var(--amber));border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(230,126,34,0.4);display:flex;align-items:center;justify-content:center;z-index:50}
@@ -114,7 +121,8 @@ input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weig
 .cat-btns{display:flex;gap:8px}
 .cat-btn{flex:1;padding:12px 4px;border-radius:12px;font-size:11px;cursor:pointer;font-family:var(--font);font-weight:600;transition:all .2s ease;display:flex;flex-direction:column;align-items:center;gap:6px}
 .cat-btn:active{transform:scale(0.95)}
-.cat-btn .cat-btn-icon{font-size:22px;line-height:1}
+.cat-btn .cat-btn-icon{font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center}
+.cat-btn .cat-btn-icon svg{width:24px;height:24px}
 .cat-btn .cat-btn-label{font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.3px}
 
 /* Custom checkboxes */
@@ -215,7 +223,7 @@ input[type="number"].form-input{font-family:var(--mono);font-size:15px;font-weig
 // ─── DATA ───
 const CATEGORIES = ["Galp","Meal","Telemóveis","Outro"];
 const CAT_COLORS = {Galp:"#e67e22",Meal:"#27ae60","Telemóveis":"#3498db",Outro:"#9b59b6"};
-const CAT_ICONS = {Galp:"⛽",Meal:"🍽️","Telemóveis":"📱",Outro:"📦"};
+const CAT_ICONS = {Galp:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M3 22h10"/><path d="M13 11h3a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/><path d="M6 12h4"/></svg>`,Meal:"🍽️","Telemóveis":"📱",Outro:"📦"};
 
 const DEFAULT_DATA = {
   configs: {
@@ -461,13 +469,14 @@ function renderDashboard(){
   const el=document.getElementById("dashboard");
   const exps=appData.expenses.filter(e=>e.fy===activeFY);
   const cfg=appData.configs[activeFY]||{budget:3000};
-  const total=exps.reduce((s,e)=>s+e.amount,0);
-  const pending=exps.filter(e=>e.pending).reduce((s,e)=>s+e.amount,0);
+  const eff=e=>e.finalAmount||e.amount;
+  const total=exps.reduce((s,e)=>s+eff(e),0);
+  const pending=exps.filter(e=>e.pending).reduce((s,e)=>s+eff(e),0);
   const confirmed=total-pending;
   const avail=cfg.budget-total;
   const pct=total/cfg.budget;
   const byType={};
-  CATEGORIES.forEach(c=>{byType[c]=exps.filter(e=>e.type===c).reduce((s,e)=>s+e.amount,0);});
+  CATEGORIES.forEach(c=>{byType[c]=exps.filter(e=>e.type===c).reduce((s,e)=>s+eff(e),0);});
 
   const size=120,stroke=10,r=(size-stroke)/2,circ=2*Math.PI*r,filled=circ*Math.min(pct,1);
   const ringColor=pct>1?"#e74c3c":"#e67e22";
@@ -504,7 +513,7 @@ function renderFilters(){
   const types=[["all","Todas"],...CATEGORIES.map(c=>[c,c])];
   const statuses=[["all","Todas"],["pending","Pendentes"],["confirmed","Confirmadas"],["reimbursed","Reembolsadas"]];
   el.innerHTML=
-    `<div class="filter-row"><span class="filter-label">Tipo</span><div class="filter-btns">`+
+    `<div class="filter-row"><span class="filter-label">Tipo</span><div class="filter-pipe"></div><div class="filter-btns">`+
     types.map(([k,l])=>{
       const active=filterType===k;
       const bg=active?(k==="all"?"rgba(255,255,255,0.12)":(CAT_COLORS[k]||"#fff")+"33"):"rgba(255,255,255,0.04)";
@@ -512,7 +521,7 @@ function renderFilters(){
       return `<button class="filter-btn" style="background:${bg};color:${col}" onclick="setFilterType('${k}')">${l}</button>`;
     }).join("")+
     `</div></div>`+
-    `<div class="filter-row"><span class="filter-label">Estado</span><div class="filter-btns">`+
+    `<div class="filter-row"><span class="filter-label">Estado</span><div class="filter-pipe"></div><div class="filter-btns">`+
     statuses.map(([k,l])=>{
       const active=filterStatus===k;
       return `<button class="filter-btn" style="background:${active?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.04)"};color:${active?"#fff":"#666"}" onclick="setFilterStatus('${k}')">${l}</button>`;
@@ -531,20 +540,28 @@ function renderList(){
 
   el.innerHTML=`<div class="list-count">${list.length} despesa${list.length!==1?"s":""}</div>`+
     (list.length===0?`<div class="empty-state">Sem despesas registadas</div>`:
-    `<div class="exp-list">${list.map(e=>`
+    `<div class="exp-list">${list.map(e=>{
+      const isDone = e.reimbursed;
+      const checkSvg = isDone
+        ? `<div class="exp-status confirmed"><svg viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`
+        : `<div class="exp-status not-confirmed"><svg viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/></svg></div>`;
+      const displayAmount = e.finalAmount||e.amount;
+      const showProv = e.type==="Galp" && e.finalAmount && e.finalAmount!==e.amount;
+      return `
       <div class="exp-row ${e.pending?"pending":""}" onclick="openEdit('${e.id}')">
         <div class="exp-icon" style="background:${CAT_COLORS[e.type]||CAT_COLORS.Outro}18">${CAT_ICONS[e.type]||"📦"}</div>
         <div class="exp-info">
           <div class="exp-desc-row">
             <span class="exp-desc">${esc(e.desc)}</span>
-            ${e.pending?'<span class="badge badge-pending">PEND.</span>':""}
-            ${e.reimbursed?'<span class="badge badge-reimb">REEMB.</span>':""}
           </div>
           <div class="exp-meta">${fmtDate(e.date)}${e.quinzena?" · "+esc(e.quinzena):""}</div>
         </div>
-        <div class="exp-amount" style="color:${CAT_COLORS[e.type]||CAT_COLORS.Outro}">${fmt(e.amount)}</div>
-        <button class="btn-del" onclick="event.stopPropagation();askDelete('${e.id}')">🗑</button>
-      </div>`).join("")}</div>`);
+        <div class="exp-amount" style="color:${CAT_COLORS[e.type]||CAT_COLORS.Outro}">
+          ${fmt(displayAmount)}
+          ${showProv?`<div class="exp-amount-prov">${fmt(e.amount)}</div>`:""}
+        </div>
+        ${checkSvg}
+      </div>`}).join("")}</div>`);
 }
 
 function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
@@ -571,20 +588,32 @@ function openEdit(id){
 function closeForm(){ document.getElementById("formModal").classList.remove("open"); }
 
 function renderForm(exp){
-  const f=exp||{type:"Galp",date:new Date().toISOString().slice(0,10),desc:"",amount:"",quinzena:"",reimbursed:false,pending:false};
+  const f=exp||{type:"Galp",date:new Date().toISOString().slice(0,10),desc:"",amount:"",finalAmount:"",quinzena:"",reimbursed:false,pending:false};
+  const isGalp=f.type==="Galp";
+  const amountRow = isGalp
+    ? `<div class="form-row">
+        <div class="form-group"><label class="form-label">Provisório</label><div class="input-currency-wrap"><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00" inputmode="decimal"></div></div>
+        <div class="form-group"><label class="form-label">Final (Extrato)</label><div class="input-currency-wrap"><input class="form-input" type="number" step="0.01" id="fFinalAmount" value="${f.finalAmount||""}" placeholder="—" inputmode="decimal" style="${f.finalAmount?"":"opacity:0.5"}" onfocus="this.style.opacity=1"></div></div>
+      </div>`
+    : `<div class="form-row">
+        <div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="fDate" value="${f.date||""}"></div>
+        <div class="form-group"><label class="form-label">Valor</label><div class="input-currency-wrap"><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00" inputmode="decimal"></div></div>
+      </div>`;
+  const dateRowGalp = isGalp
+    ? `<div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="fDate" value="${f.date||""}"></div>`
+    : "";
+  const reimbLabel = isGalp ? "Confirmado" : "Reembolsado";
   document.getElementById("formBody").innerHTML=`
     <div class="form-group"><label class="form-label">Categoria</label>
       <div class="cat-btns">${CATEGORIES.map(c=>`<button class="cat-btn" id="catBtn_${c}" style="border:${f.type===c?`2px solid ${CAT_COLORS[c]}`:"1.5px solid rgba(255,255,255,0.06)"};background:${f.type===c?CAT_COLORS[c]+"22":"transparent"};color:${f.type===c?CAT_COLORS[c]:"#666"}" onclick="selectCat('${c}')"><span class="cat-btn-icon">${CAT_ICONS[c]}</span><span class="cat-btn-label">${c}</span></button>`).join("")}</div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="fDate" value="${f.date||""}"></div>
-      <div class="form-group"><label class="form-label">Valor</label><div class="input-currency-wrap"><input class="form-input" type="number" step="0.01" id="fAmount" value="${f.amount}" placeholder="0.00" inputmode="decimal"></div></div>
-    </div>
+    ${dateRowGalp}
+    ${amountRow}
     <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="fDesc" value="${esc(f.desc)}" placeholder="Ex: Alcochete, Restaurante X..."></div>
     <div class="form-group"><label class="form-label">Quinzena TR / Extrato</label><input class="form-input" id="fQuinzena" value="${esc(f.quinzena)}" placeholder="Ex: Extrato 2026Mai, TR 2026Mai Q1"></div>
     <div class="check-row">
       <label class="check-label"><input type="checkbox" class="chk-pending" id="fPending" ${f.pending?"checked":""}> Pendente</label>
-      <label class="check-label"><input type="checkbox" class="chk-reimb" id="fReimb" ${f.reimbursed?"checked":""}> Reembolsado</label>
+      <label class="check-label"><input type="checkbox" class="chk-reimb" id="fReimb" ${f.reimbursed?"checked":""}> ${reimbLabel}</label>
     </div>
     <div class="btn-row"><button class="btn-cancel" onclick="closeForm()">Cancelar</button><button class="btn-save" onclick="saveForm()">Guardar</button></div>
     ${editingId?'<div style="margin-top:12px"><button class="btn-danger" onclick="askDeleteFromEdit()">🗑 Apagar Despesa</button></div>':''}`;
@@ -592,29 +621,39 @@ function renderForm(exp){
 }
 
 function selectCat(c){
-  window._formCat=c;
-  CATEGORIES.forEach(cc=>{
-    const btn=document.getElementById("catBtn_"+cc);
-    if(btn){
-      btn.style.border=cc===c?`2px solid ${CAT_COLORS[cc]}`:"1.5px solid rgba(255,255,255,0.06)";
-      btn.style.background=cc===c?CAT_COLORS[cc]+"22":"transparent";
-      btn.style.color=cc===c?CAT_COLORS[cc]:"#666";
-    }
-  });
+  // Capture current form values before re-render
+  const currentValues = {
+    type: c,
+    date: document.getElementById("fDate")?.value || "",
+    desc: document.getElementById("fDesc")?.value || "",
+    amount: document.getElementById("fAmount")?.value || "",
+    finalAmount: document.getElementById("fFinalAmount")?.value || "",
+    quinzena: document.getElementById("fQuinzena")?.value || "",
+    pending: document.getElementById("fPending")?.checked || false,
+    reimbursed: document.getElementById("fReimb")?.checked || false,
+  };
+  window._formCat = c;
+  renderForm(currentValues);
 }
 
 function saveForm(){
   const desc=document.getElementById("fDesc").value.trim();
   const amount=parseFloat(document.getElementById("fAmount").value);
   if(!desc||isNaN(amount)) return;
+  const cat=window._formCat||"Galp";
+  const fFinal=document.getElementById("fFinalAmount");
+  const finalVal=fFinal?parseFloat(fFinal.value):NaN;
   const obj={
-    type:window._formCat||"Galp",
+    type:cat,
     date:document.getElementById("fDate").value,
     desc, amount,
+    finalAmount: cat==="Galp"&&!isNaN(finalVal)?finalVal:null,
     quinzena:document.getElementById("fQuinzena").value.trim(),
     pending:document.getElementById("fPending").checked,
     reimbursed:document.getElementById("fReimb").checked,
   };
+  // Auto-confirm Galp when final amount is set
+  if(cat==="Galp"&&obj.finalAmount) obj.reimbursed=true;
   if(editingId){
     const idx=appData.expenses.findIndex(e=>e.id===editingId);
     if(idx>=0) appData.expenses[idx]={...appData.expenses[idx],...obj};
