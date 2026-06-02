@@ -364,12 +364,13 @@
       "id": "s31",
       "fy": "FY25",
       "type": "Telemóveis",
-      "date": "",
-      "desc": "Comunicações Nov/24",
-      "amount": 3.55,
+      "date": "2025-11-30",
+      "desc": "Comunicações FY25",
+      "amount": 40.98,
       "quinzena": "",
       "reimbursed": false,
-      "pending": false
+      "pending": false,
+      "finalAmount": null
     },
     {
       "id": "s44",
