@@ -308,14 +308,11 @@ function updateReadOnlyMode(){ document.body.classList.toggle('read-only',!getTo
 async function carregar(){
   setSync('load','a ler do GitHub…');
   try{
-    const apiUrl=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}?ref=${GH.branch}&t=${Date.now()}`;
-    const hdrs={Accept:'application/vnd.github.v3+json'};const tk=getToken();if(tk)hdrs.Authorization='token '+tk;
-    const res=await fetch(apiUrl,{headers:hdrs,cache:'no-store'});
+    // Leitura pública via raw (CDN, sem limite de pedidos, sem token). O sha é obtido na gravação.
+    const rawUrl=`https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/${GH.branch}/${GH.path}?t=${Date.now()}`;
+    const res=await fetch(rawUrl,{cache:'no-store'});
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const json=await res.json(); GH_SHA=json.sha;
-    const raw=json.content.replace(/\n/g,'');
-    const bytes=Uint8Array.from(atob(raw),c=>c.charCodeAt(0));
-    const decoded=new TextDecoder('utf-8').decode(bytes);
+    const decoded=await res.text();
     appData=JSON.parse(decoded);
     activeFY=getCurrentFY();
     if(!appData.configs[activeFY]) activeFY=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a))[0];
@@ -332,6 +329,8 @@ async function pushToGitHub(msg){
   const tk=getToken();
   if(!tk){ toast('Configura o token primeiro (⚙)','bad'); return false; }
   try{
+    // A leitura passou a ser por raw (sem sha); obter o sha mais recente antes de gravar
+    try{const chk=await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}?ref=${GH.branch}&t=${Date.now()}`,{headers:{Authorization:'token '+tk,Accept:'application/vnd.github.v3+json'},cache:'no-store'});if(chk.ok){const cj=await chk.json();GH_SHA=cj.sha;}else if(chk.status===404){GH_SHA=null;}}catch(_){}
     const body=JSON.stringify({
       message: msg,
       content: btoa(unescape(encodeURIComponent(JSON.stringify(appData,null,2)))),
@@ -742,7 +741,7 @@ async function confirmDelete(){
 
 // Settings
 function openSettings(){
-  const cfg=appData.configs[activeFY]||{budget:3000,wbs:"GI241002"};
+  const cfg=(appData&&appData.configs&&appData.configs[activeFY])||{budget:3000,wbs:"GI241002"};
   document.getElementById("settingsBody").innerHTML=`
     <div class="settings-field">
       <label class="form-label">Token GitHub (ghp_…)</label>
