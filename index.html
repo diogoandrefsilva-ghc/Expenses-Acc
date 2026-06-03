@@ -308,11 +308,21 @@ function updateReadOnlyMode(){ document.body.classList.toggle('read-only',!getTo
 async function carregar(){
   setSync('load','a ler do GitHub…');
   try{
-    // Leitura pública via raw (CDN, sem limite de pedidos, sem token). O sha é obtido na gravação.
-    const rawUrl=`https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/${GH.branch}/${GH.path}?t=${Date.now()}`;
-    const res=await fetch(rawUrl,{cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const decoded=await res.text();
+    const tk=getToken();
+    let decoded;
+    if(tk){
+      // Editor: ler pela API autenticada (sempre fresca, sem cache de CDN) e guardar o sha.
+      const res=await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}?ref=${GH.branch}&t=${Date.now()}`,{headers:{Authorization:'token '+tk,Accept:'application/vnd.github.v3+json'},cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const j=await res.json();
+      GH_SHA=j.sha;
+      decoded=decodeURIComponent(escape(atob(j.content)));
+    } else {
+      // Leitura pública via raw (CDN, sem token) — apenas para modo de leitura.
+      const res=await fetch(`https://raw.githubusercontent.com/${GH.owner}/${GH.repo}/${GH.branch}/${GH.path}?t=${Date.now()}`,{cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      decoded=await res.text();
+    }
     appData=JSON.parse(decoded);
     activeFY=getCurrentFY();
     if(!appData.configs[activeFY]) activeFY=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a))[0];
@@ -326,10 +336,12 @@ async function carregar(){
 }
 
 let _writeChain = Promise.resolve();
+let _writePending = 0;
 function pushToGitHub(msg){
   // Serializa as gravações: o próximo push só arranca quando o anterior terminar
   // (sucesso ou erro), para que o sha obtido antes do PUT esteja sempre fresco.
-  _writeChain = _writeChain.then(()=>_doPush(msg), ()=>_doPush(msg));
+  _writePending++;
+  _writeChain = _writeChain.then(()=>_doPush(msg), ()=>_doPush(msg)).finally(()=>{_writePending--;});
   return _writeChain;
 }
 
@@ -800,7 +812,7 @@ function exportJSON(){
 }
 // ─── GO ───
 init();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden) carregar();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden && _writePending===0) carregar();});
 </script>
 </body>
 </html>
