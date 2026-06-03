@@ -458,8 +458,9 @@
       "desc": "Alcochete",
       "amount": 71.35,
       "quinzena": "Extrato 2025Mar",
-      "reimbursed": true,
-      "pending": false
+      "reimbursed": false,
+      "pending": false,
+      "finalAmount": 70
     },
     {
       "id": "s52",
