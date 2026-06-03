@@ -325,7 +325,15 @@ async function carregar(){
   }
 }
 
-async function pushToGitHub(msg){
+let _writeChain = Promise.resolve();
+function pushToGitHub(msg){
+  // Serializa as gravações: o próximo push só arranca quando o anterior terminar
+  // (sucesso ou erro), para que o sha obtido antes do PUT esteja sempre fresco.
+  _writeChain = _writeChain.then(()=>_doPush(msg), ()=>_doPush(msg));
+  return _writeChain;
+}
+
+async function _doPush(msg){
   const tk=getToken();
   if(!tk){ toast('Configura o token primeiro (⚙)','bad'); return false; }
   try{
