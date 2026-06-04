@@ -579,7 +579,7 @@ function renderList(){
         checkSvg = blueCheck;
       }
       const displayAmount = e.finalAmount||e.amount;
-      const showProv = e.type==="Galp" && e.finalAmount && e.finalAmount!==e.amount;
+      const showProv = e.type==="Galp" && e.finalAmount && e.amount && e.finalAmount!==e.amount;
       return `
       <div class="exp-row ${e.pending?"pending":""}" onclick="openEdit('${e.id}')">
         <div class="exp-icon" style="background:${CAT_COLORS[e.type]||CAT_COLORS.Outro}18">${CAT_ICONS[e.type]||"📦"}</div>
