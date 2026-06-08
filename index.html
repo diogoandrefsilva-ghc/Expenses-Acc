@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Despesas">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -818,6 +819,18 @@ function exportJSON(){
 // ─── GO ───
 init();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden && _writePending===0) carregar();});
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" })
+        .then((reg) => {
+            setInterval(() => reg.update().catch(() => {}), 60000);
+        })
+        .catch((err) => console.log("[SW] Registration failed:", err));
+    navigator.serviceWorker.addEventListener("message", (e) => {
+        if (e.data </body></body> e.data.type === "RELOAD") window.location.reload();
+    });
+}
 </script>
 </body>
 </html>
