@@ -823,7 +823,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden && _writeP
 
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    navigator.serviceWorker.register('/Expenses-Acc/sw.js', { scope: '/Expenses-Acc/' })
         .then((reg) => { setInterval(() => reg.update().catch(() => {}), 60000); })
         .catch((err) => console.log('[SW] Registration failed:', err));
 }
