@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Accenture · Despesas Manager</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,6 +12,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
+/* Bloqueia pinch-zoom e double-tap zoom (iOS PWA) */
+*{touch-action:manipulation}
+html,body{touch-action:pan-x pan-y}
+
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg:#12141a;--card:#1a1d23;--card2:#22252b;--border:rgba(255,255,255,0.06);
