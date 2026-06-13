@@ -334,8 +334,9 @@ async function carregar(){
       decoded=await res.text();
     }
     appData=JSON.parse(decoded);
-    activeFY=getCurrentFY();
-    if(!appData.configs[activeFY]) activeFY=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a))[0];
+    let _savedFY=null;try{_savedFY=localStorage.getItem('exp_fy');}catch(e){}
+    if(_savedFY && appData.configs[_savedFY]){ activeFY=_savedFY; }
+    else { activeFY=getCurrentFY(); if(!appData.configs[activeFY]) activeFY=Object.keys(appData.configs).sort((a,b)=>b.localeCompare(a))[0]; }
     render();
     setSync('live','sincronizado · '+new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}));
     updateReadOnlyMode();
@@ -610,7 +611,7 @@ function renderList(){
 function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 
 // ─── ACTIONS ───
-function switchFY(fy){ activeFY=fy; filterType="all"; filterStatus="all"; render(); }
+function switchFY(fy){ activeFY=fy; try{localStorage.setItem('exp_fy',fy);}catch(e){} filterType="all"; filterStatus="all"; render(); }
 function setFilterType(t){ filterType=t; renderFilters(); renderList(); }
 function setFilterStatus(s){ filterStatus=s; renderFilters(); renderList(); }
 
